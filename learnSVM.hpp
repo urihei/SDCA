@@ -21,7 +21,7 @@ protected:
     unsigned int _iter; // number of iteration out loop
     unsigned int _accIter; // only when using acc_learn
     size_t _n; // number of samples
-    MatrixXd _k; // the kernek matrix _n x _n 
+    MatrixXd _data; // the kernek matrix _n x _n 
     double _lambda;
     int* _y;
 
