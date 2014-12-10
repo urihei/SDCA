@@ -9,7 +9,7 @@ using namespace std;
 
 class learnSVM{
 public:
-    learnSVM(int* y,vector<vector<double>> data,
+  learnSVM(vector<int> &y,vector<vector<double>> &data,
              unsigned int iter = 100,unsigned int accIter = 0,
              double lambda = 1);
     virtual void learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA)=0;
@@ -23,7 +23,7 @@ protected:
     size_t _n; // number of samples
     MatrixXd _data; // the kernek matrix _n x _n 
     double _lambda;
-    int* _y;
+  vector<int> _y;
 
 };
 #endif

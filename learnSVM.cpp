@@ -1,6 +1,6 @@
 #include "learnSVM.hpp"
 
-learnSVM::learnSVM(int* y,vector<vector<double>> data, unsigned int iter,
+learnSVM::learnSVM(vector<int> &y,vector<vector<double>> &data, unsigned int iter,
                    unsigned int accIter,double lambda)
     :_iter(iter),_accIter(accIter),_lambda(lambda),_y(y){
     _n = data.size();

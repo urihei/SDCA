@@ -6,7 +6,7 @@
 
 class learnMultiClassSVM: public learnSVM{
 public:
-    learnMultiClassSVM(int* y,vector<vector<double>> data,size_t k,
+  learnMultiClassSVM(vector<int> &y,vector<vector<double>> &data,size_t k,
                        unsigned int iter,unsigned int accIter,
                        double lambda);
     virtual void learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA);
@@ -18,6 +18,5 @@ protected:
     
     size_t _k;
     double _gamma;
-    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a);
 };
 #endif

@@ -1,7 +1,7 @@
 #include "learnMultiClassSVM.hpp"
 #include "usedFun.hpp"
 
-learnMultiClassSVM::learnMultiClassSVM(int* y,vector<vector<double>> data,size_t k,
+learnMultiClassSVM::learnMultiClassSVM(vector<int> &y,vector<vector<double>> &data,size_t k,
                                        unsigned int iter,unsigned int accIter,
                                        double lambda)
     :learnSVM(y,data,iter,accIter,lambda),_k(k){
@@ -23,7 +23,7 @@ void learnMultiClassSVM::learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA){
 
     ArrayXd muh(_k);
     ArrayXd mub(_k);
-    ArrayXd z(_k+1);
+    ArrayXd z(_k);
     
     ArrayXd OneToK(_k);
     OneToK.setOnes();
@@ -57,20 +57,21 @@ void learnMultiClassSVM::learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA){
         //creating mub
         cumsum(muh.data(),_k,mub.data());
         //creating z
-        z.head(_k) = (mub - (OneToK * muh)).min(1);
-        z(_k) = 1;
+        z  = (mub - (OneToK * muh)).min(1);
         //calc normOne (matlab mubDjC)
         normOne = mub/(1+(OneToK*C));
         //find indF
-        size_t indF = findFirstBetween(normOne.data(),z.head(_k).data(),
-                                       z.tail(_k).data(),_k);
+        size_t indF = findFirstBetween(normOne.data(),z.data(),_k);
         //
         if(indF >= _k){
-            size_t indJ = findLast(z.data(),_k)
+	  size_t indJ = findFirst(z.data(),_k);
+	  a = (mu+((1-mub(indJ))/indJ)).max(0);
+	  if((a-mu).matrix().squaredNorm()+C < mu.matrix().squaredNorm()){
+	    a.setZero();
+	  }
         }else{
             a = (mu+((normOne(indF)-mub(indF))/(indF+0.0))).max(0);
-        }
-            
+        } 
         // END optimizeDual_SDCA
         alpha.col(i) = -a;
         alpha(_y[i],i) = a.matrix().lpNorm<1>();
@@ -92,8 +93,4 @@ void learnMultiClassSVM::setGamma(double gamma){
 }
 double learnMultiClassSVM::getGamma(){
     return _gamma;
-}
-
-void learnMultiClassSVM::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
-    
 }
