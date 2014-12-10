@@ -6,12 +6,12 @@
 
 class learnMultiClassSVM: public learnSVM{
 public:
-  learnMultiClassSVM(vector<int> &y,vector<vector<double>> &data,size_t k,
-                       unsigned int iter,unsigned int accIter,
-                       double lambda);
-    virtual void learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA);
-    virtual void acc_learn_SDCA(MatrixXd &alpha);
-    virtual void returnModel(MatrixXd &model);
+  learnMultiClassSVM(ivec &y,matd &data,size_t k,
+                       unsigned int iter=100,unsigned int accIter=0,
+                       double lambda=1);
+    virtual void learn_SDCA(mat &alpha, mat &zALPHA);
+    virtual void acc_learn_SDCA(mat &alpha);
+    virtual void returnModel(mat &model);
     virtual void setGamma(double gamma);
     virtual double getGamma();
 protected:

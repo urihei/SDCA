@@ -7,23 +7,29 @@
 using namespace Eigen;
 using namespace std;
 
+typedef vector<double> vec;
+typedef vector<size_t> ivec;
+typedef vector<vec> matd;
+typedef MatrixXd mat;
+
 class learnSVM{
 public:
-  learnSVM(vector<int> &y,vector<vector<double>> &data,
+  learnSVM(ivec &y,matd &data,
              unsigned int iter = 100,unsigned int accIter = 0,
              double lambda = 1);
-    virtual void learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA)=0;
-    virtual void acc_learn_SDCA(MatrixXd &alpha)=0;
-    virtual void returnModel(MatrixXd &model)=0;
+    virtual void learn_SDCA(mat &alpha, mat &zALPHA)=0;
+    virtual void acc_learn_SDCA(mat &alpha)=0;
+    virtual void returnModel(mat &model)=0;
+    
     ~learnSVM();
     
 protected:
     unsigned int _iter; // number of iteration out loop
     unsigned int _accIter; // only when using acc_learn
     size_t _n; // number of samples
-    MatrixXd _data; // the kernek matrix _n x _n 
+    mat _data; // the kernek matrix _n x _n 
     double _lambda;
-  vector<int> _y;
+    ivec _y;
 
 };
 #endif

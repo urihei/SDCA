@@ -8,22 +8,22 @@
 #include <Eigen/Dense>
 #include <algorithm>
 #include "usedFun.hpp"
+#include <map>
 
 #include "learnMultiClassSVM.hpp"
 using namespace Eigen;
 using namespace std;
 
 
-typedef vector<double> vec;
-typedef vector<int> ivec;
-typedef vector<vec> mat;
 
 
-void ReadData(string fileName,mat& data,ivec & label){
+int ReadData(string fileName,matd& data,ivec & label){
     string line;
     ifstream myfile;
     myfile.open(fileName.c_str(),ifstream::in);
     double tmp;
+    map<size_t,int> lMap;
+    size_t countLabel = 0;
     if (!myfile.is_open()){
         cerr << "Unable to open file" << fileName<<endl; 
         assert(false);
@@ -36,21 +36,37 @@ void ReadData(string fileName,mat& data,ivec & label){
             if (iss)
                 v.push_back(tmp);
         }
-        label.push_back((int)(v.back()));
+        int cl = (int)(v.back());
+        if(lMap.count(cl) > 0){
+            label.push_back(lMap[cl]);
+        }else{
+            label.push_back(countLabel);
+            lMap[cl] = countLabel;
+            countLabel++;
+        }
+
         v.pop_back();
 
         data.push_back(v);
     }
     myfile.close();
+    return countLabel;
 }
 
 
 int main(int argc,char ** argv){
   string  fileName(argv[1]);
-  mat data_t;
+  matd data_t;
   ivec y_t;
-  ReadData(fileName,data_t,y_t);
-  learnMultiClassSVM svm(y_t,data_t);
+  size_t k =  ReadData(fileName,data_t,y_t);
+  learnMultiClassSVM svm(y_t,data_t,k,100*y_t.size(),0,10/(y_t.size()+0.0));
+  mat alpha(k,y_t.size());
+  alpha.setZero();
+  mat zAlpha(k,y_t.size());
+  zAlpha.setZero();
+  cerr<<"Finish reading data"<<endl;;
+  svm.learn_SDCA(alpha,zAlpha);
+  
   srand( (unsigned)time(NULL) );
     // MatrixXd data = MatrixXd::Random(3,4);
     // MatrixXd data2(3,4);

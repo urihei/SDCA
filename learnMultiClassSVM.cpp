@@ -1,20 +1,23 @@
 #include "learnMultiClassSVM.hpp"
 #include "usedFun.hpp"
 
-learnMultiClassSVM::learnMultiClassSVM(vector<int> &y,vector<vector<double>> &data,size_t k,
+learnMultiClassSVM::learnMultiClassSVM(ivec &y,matd &data,size_t k,
                                        unsigned int iter,unsigned int accIter,
                                        double lambda)
     :learnSVM(y,data,iter,accIter,lambda),_k(k){
     _gamma = 0.1;
 }
 
-void learnMultiClassSVM::learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA){
+void learnMultiClassSVM::learn_SDCA(mat &alpha, mat &zALPHA){
     double lambdaN = 1/(_n*_lambda);
+
     double gammaLambdan = _gamma*_n*_lambda;
+
+
     double C;
     unsigned int ind = 0;
     unsigned int* prm = new unsigned int[_n];
-    MatrixXd AlTemp(_k,_n);
+    mat AlTemp(_k,_n);
 
     ArrayXd p(_k);
     ArrayXd c(_k);
@@ -44,9 +47,10 @@ void learnMultiClassSVM::learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA){
 
         c.setOnes();
         c(_y[i]) = 0;
+
         
-        mu = (c+p)/(_gamma+_data(i,i)*lambdaN);
-        C = 1/(1+gammaLambdan/_data(i,i));
+        mu = (c+p)/(_gamma+(_data(i,i)*lambdaN));
+        C = 1/(1+(gammaLambdan/_data(i,i)));
 
         //optimizeDual_SDCA(mu,C,a);
 
@@ -62,16 +66,17 @@ void learnMultiClassSVM::learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA){
         normOne = mub/(1+(OneToK*C));
         //find indF
         size_t indF = findFirstBetween(normOne.data(),z.data(),_k);
-        //
+
+
         if(indF >= _k){
-	  size_t indJ = findFirst(z.data(),_k);
-	  a = (mu+((1-mub(indJ))/indJ)).max(0);
-	  if((a-mu).matrix().squaredNorm()+C < mu.matrix().squaredNorm()){
-	    a.setZero();
+	  size_t indJ = findFirst(z.data(),_k)-1;
+           a = (mu+((1-mub(indJ))/(indJ+1))).max(0);
+	  if(((a-mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
+              a.setZero();
 	  }
         }else{
-            a = (mu+((normOne(indF)-mub(indF))/(indF+0.0))).max(0);
-        } 
+            a = (mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
+        }
         // END optimizeDual_SDCA
         alpha.col(i) = -a;
         alpha(_y[i],i) = a.matrix().lpNorm<1>();
@@ -80,12 +85,24 @@ void learnMultiClassSVM::learn_SDCA(MatrixXd &alpha, MatrixXd &zALPHA){
     }
 
     delete prm;
+    //to remove
+    MatrixXd ya(_k,_n);
+    ya = lambdaN * (alpha * _data);
+    unsigned int  count =0;
+    MatrixXf::Index index;
+    for(size_t i=0;i<_n;i++){
+        ya.col(i).maxCoeff(&index);
+        
+        if( ((unsigned int)index) != _y[i])
+            count++;
+    }
+    cout<<"The Number of train error "<<count<<endl;
 
 }
-void learnMultiClassSVM::acc_learn_SDCA(MatrixXd &alpha){
+void learnMultiClassSVM::acc_learn_SDCA(mat &alpha){
 
 }
-void learnMultiClassSVM::returnModel(MatrixXd &model){
+void learnMultiClassSVM::returnModel(mat &model){
 
 }
 void learnMultiClassSVM::setGamma(double gamma){

@@ -1,5 +1,5 @@
 #include "usedFun.hpp"
-boost::mt19937 gen(time(NULL));
+boost::mt19937 gen(time(NULL));//999);//
 
 int roll(unsigned int d){
    boost::random::uniform_int_distribution<> dist(0, d);
