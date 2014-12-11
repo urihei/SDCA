@@ -16,3 +16,25 @@ learnSVM::learnSVM(ivec &y,matd &data, unsigned int iter,
 }
 learnSVM::~learnSVM(){
 }
+void learnSVM::setIter(unsigned int iter){
+    _iter = iter;
+}
+void learnSVM::setAccIter(unsigned int iter){
+    _accIter = iter;
+}
+void learnSVM::setLambda(double lambda){
+    _lambda = lambda;
+}
+unsigned int learnSVM::getIter(){
+    return _iter;
+}
+unsigned int learnSVM::getAccIter(){
+    return _accIter;
+}
+double learnSVM::getLambda(){
+    return _lambda;
+}
+mat* learnSVM::getData(){
+    return &_data;
+
+}

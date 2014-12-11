@@ -59,14 +59,49 @@ int main(int argc,char ** argv){
   matd data_t;
   ivec y_t;
   size_t k =  ReadData(fileName,data_t,y_t);
-  learnMultiClassSVM svm(y_t,data_t,k,100*y_t.size(),0,10/(y_t.size()+0.0));
-  mat alpha(k,y_t.size());
-  alpha.setZero();
-  mat zAlpha(k,y_t.size());
+  size_t n = y_t.size();
+  double lambda = 10/(n+0.0);
+  learnMultiClassSVM svm(y_t,data_t,k,100*n,0,lambda);
+  mat alpha1(k,n);
+  alpha1.setZero();
+  mat zAlpha(k,n);
   zAlpha.setZero();
-  cerr<<"Finish reading data"<<endl;;
-  svm.learn_SDCA(alpha,zAlpha);
+  MatrixXd* dataPt = svm.getData();
+  MatrixXd data = *dataPt;
+  cerr<<"Finish reading data"<<endl;
+  time_t start =time(NULL);
+  svm.learn_SDCA(alpha1,zAlpha);
+  cout<<"time :"<<time(NULL) - start<<endl;
+  //eval
+  //classify
+  MatrixXd ya(k,n);
+  ya = 1/(lambda*n) * (alpha1 * data);
+  unsigned int  count =0;
+  MatrixXf::Index index;
+  for(size_t i=0;i<n;i++){
+      ya.col(i).maxCoeff(&index);
+      //comapre
+      if( ((unsigned int)index) != y_t[i])
+          count++;
+  }
+  cout<<"The Number of train error "<<count<<endl;
   
+  mat alpha2(k,n);
+  alpha2.setZero();
+  svm.setAccIter(100);
+  svm.setIter(5*n);
+  start =time(NULL);
+  svm.acc_learn_SDCA(alpha2);
+    cout<<"time :"<<time(NULL) - start<<endl;
+  ya = 1/(lambda*n) * (alpha2 * data);
+  count =0;
+  for(size_t i=0;i<n;i++){
+      ya.col(i).maxCoeff(&index);
+      //comapre
+      if( ((unsigned int)index) != y_t[i])
+          count++;
+  }
+  cout<<"The Number of train error "<<count<<endl;
   srand( (unsigned)time(NULL) );
     // MatrixXd data = MatrixXd::Random(3,4);
     // MatrixXd data2(3,4);

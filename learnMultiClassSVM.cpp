@@ -85,22 +85,26 @@ void learnMultiClassSVM::learn_SDCA(mat &alpha, mat &zALPHA){
     }
 
     delete prm;
-    //to remove
-    MatrixXd ya(_k,_n);
-    ya = lambdaN * (alpha * _data);
-    unsigned int  count =0;
-    MatrixXf::Index index;
-    for(size_t i=0;i<_n;i++){
-        ya.col(i).maxCoeff(&index);
-        
-        if( ((unsigned int)index) != _y[i])
-            count++;
-    }
-    cout<<"The Number of train error "<<count<<endl;
-
 }
 void learnMultiClassSVM::acc_learn_SDCA(mat &alpha){
+    double kappa = 100*_lambda;
+    double mu = _lambda/2;
+    double rho = mu+kappa;
+    double eta = sqrt(mu/rho);
+    double beta = (1-eta)/(1+eta);
 
+    MatrixXd zALPHA(_k,_n);
+    zALPHA.setZero();
+    MatrixXd ALPHA_t(_k,_n);
+    ALPHA_t.setZero();
+    MatrixXd zALPHA_t(_k,_n);
+    for(unsigned int t =0;t<_accIter;++t){
+        learn_SDCA(alpha,zALPHA);
+        zALPHA_t = zALPHA;
+        zALPHA = (1+beta)*(zALPHA + alpha) - beta * ALPHA_t;
+        ALPHA_t = zALPHA_t+alpha;
+    }
+    alpha = ALPHA_t;
 }
 void learnMultiClassSVM::returnModel(mat &model){
 

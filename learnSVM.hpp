@@ -20,7 +20,13 @@ public:
     virtual void learn_SDCA(mat &alpha, mat &zALPHA)=0;
     virtual void acc_learn_SDCA(mat &alpha)=0;
     virtual void returnModel(mat &model)=0;
-    
+    virtual void setIter(unsigned int iter);
+    virtual void setAccIter(unsigned int iter);
+    virtual void setLambda(double lambda);
+    virtual unsigned int getIter();
+    virtual unsigned int getAccIter();
+    virtual double getLambda();
+    virtual mat* getData();
     ~learnSVM();
     
 protected:
