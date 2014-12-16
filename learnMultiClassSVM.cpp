@@ -18,39 +18,57 @@ void learnMultiClassSVM::learn_SDCA(mat &alpha, mat &zALPHA){
     unsigned int ind = 0;
     unsigned int* prm = new unsigned int[_n];
     mat AlTemp(_k,_n);
-
     ArrayXd p(_k);
-    ArrayXd c(_k);
+    //    ArrayXd c(_k);
     ArrayXd mu(_k);
     ArrayXd a(_k);
 
     ArrayXd muh(_k);
     ArrayXd mub(_k);
     ArrayXd z(_k);
-    
+
     ArrayXd OneToK(_k);
     OneToK.setOnes();
     cumsum(OneToK.data(),_k,OneToK.data());
+
     ArrayXd normOne(_k);
+
+    VectorXd squaredNormData(_n);
+    squaredNormData = _data.diagonal();
+
+    mat zALPHAtimeK(_k,_n);
+    zALPHAtimeK = zALPHA * _data;
+
+    mat dataD(_n,_n);
+    dataD = _data;
+    dataD.diagonal().setZero();
+
     for(unsigned int t=0;t<_iter;++t){
         if((ind % _n) == 0){
             randperm(_n,prm);
             ind = 0;
         }
         size_t i = prm[ind];
-        AlTemp = alpha;
-        AlTemp.col(i).setZero();
-        AlTemp = AlTemp + zALPHA;
+        size_t curLabel = _y[i];
+        //
+        // AlTemp = alpha;
+        // AlTemp.col(i).setZero();
+        // AlTemp = AlTemp + zALPHA;
 
-        p = lambdaN * (AlTemp * _data.col(i));
-        p = p - p(_y[i]);
+        // p = lambdaN * (AlTemp * _data.col(i));
+        // p = p - p(curLabel);
 
-        c.setOnes();
-        c(_y[i]) = 0;
-
-        
-        mu = (c+p)/(_gamma+(_data(i,i)*lambdaN));
-        C = 1/(1+(gammaLambdan/_data(i,i)));
+        // c.setOnes();
+        // c(curLabel) = 0;
+        //
+        p = lambdaN * (alpha * dataD.col(i) + zALPHAtimeK.col(i));
+        p = p - p(curLabel) +1;
+        //        cerr<<"---pt---\n"<<endl<<pt-1<<endl<<"---p---\n"<<p<<endl;
+        p(curLabel) = 0;
+        // cerr<<"DIS:"<<(pt-p-c).matrix().squaredNorm() <<endl;
+        //
+        mu = p/(_gamma+(squaredNormData(i)*lambdaN));
+        C = 1/(1+(gammaLambdan/squaredNormData(i)));
 
         //optimizeDual_SDCA(mu,C,a);
 
@@ -69,17 +87,17 @@ void learnMultiClassSVM::learn_SDCA(mat &alpha, mat &zALPHA){
 
 
         if(indF >= _k){
-	  size_t indJ = findFirst(z.data(),_k)-1;
-           a = (mu+((1-mub(indJ))/(indJ+1))).max(0);
-	  if(((a-mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
-              a.setZero();
-	  }
+            size_t indJ = findFirst(z.data(),_k)-1;
+            a = (mu+((1-mub(indJ))/(indJ+1))).max(0);
+            if(((a-mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
+                a.setZero();
+            }
         }else{
             a = (mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
         }
         // END optimizeDual_SDCA
         alpha.col(i) = -a;
-        alpha(_y[i],i) = a.matrix().lpNorm<1>();
+        alpha(curLabel,i) = a.matrix().lpNorm<1>();
                 
         ind++;
     }
