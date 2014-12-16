@@ -83,11 +83,25 @@ void learnMultiClassSVM::learn_SDCA(mat &alpha, mat &zALPHA){
         //calc normOne (matlab mubDjC)
         normOne = mub/(1+(OneToK*C));
         //find indF
-        size_t indF = findFirstBetween(normOne.data(),z.data(),_k);
+	//size_t indF = findFirstBetween(normOne.data(),z.data(),_k);
+        size_t indF = 0;
+	size_t indJ = _k+1;
+        
+	while((indF<_k-1)&&((normOne(indF) < z(indF)) || (normOne(indF) > z(indF+1)))){
+	  if(indJ == _k+1 && z(indF) ==1){
+	    indJ = indF -1;
+	  }
+	  indF++;
+	}
+	if((indF==_k-1)&& !((normOne(indF)>=z(indF))&& (normOne(indF) <= 1)) ){
+	  if(indJ == _k+1 && z(indF) ==1){
+	    indJ = indF -1;
+	  }
+	  indF++;
+	}
 
-
-        if(indF >= _k){
-            size_t indJ = findFirst(z.data(),_k)-1;
+	if(indF >= _k){
+	  //            size_t indJ = findFirst(z.data(),_k)-1;
             a = (mu+((1-mub(indJ))/(indJ+1))).max(0);
             if(((a-mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
                 a.setZero();

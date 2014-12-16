@@ -25,7 +25,7 @@ GDBEXE = $(patsubst %.cpp,$(BINDIR)/%-gdb,$(PROG_SRC))
 PROFEXE = $(patsubst %.cpp,$(BINDIR)/%-gprof,$(PROG_SRC))
 
 # include directories
-INCLUDES = -I/cs/phd/urihei/SDCA/cpp/eigen #-I./boost/include -I./glpk/build/include
+INCLUDES = -Ieigen  #-I./boost/include -I./glpk/build/include
 
 # C++ compiler flags (-g -O2 -Wall)
 CCFLAGS = -Wall -static  -Werror -Wno-deprecated -Werror=sign-compare -std=c++0x
