@@ -61,7 +61,7 @@ int main(int argc,char ** argv){
   size_t k =  ReadData(fileName,data_t,y_t);
   size_t n = y_t.size();
   double lambda = 10/(n+0.0);
-  learnMultiClassSVM svm(y_t,data_t,k,100*n,0,lambda);
+  learnMultiClassSVM svm(y_t,data_t,k,5000*n,0,lambda);
   mat alpha1(k,n);
   alpha1.setZero();
   mat zAlpha(k,n);
@@ -90,7 +90,7 @@ int main(int argc,char ** argv){
   
   mat alpha2(k,n);
   alpha2.setZero();
-  svm.setAccIter(100);
+  svm.setAccIter(1000);
   svm.setIter(5*n);
   start =time(NULL);
   svm.acc_learn_SDCA(alpha2);
