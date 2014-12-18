@@ -52,7 +52,7 @@ void learnMultiClassSVM::learn_SDCA_Iterations(mat &alpha, mat &zALPHA){
   double C;
   unsigned int ind = 0;
   
-  _zALPHAtimeK = zALPHA *_data+zALPHA_squaredNormData.asDiagonal();
+  _zALPHAtimeK = zALPHA *_data + zALPHA * _squaredNormData.asDiagonal();
 
   for(unsigned int t=0;t<_iter;++t){
     if((ind % _n) == 0){

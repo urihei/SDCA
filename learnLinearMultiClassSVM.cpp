@@ -36,7 +36,7 @@ void learnLinearMultiClassSVM::unBuildTempVariables(){
 }
 void learnLinearMultiClassSVM::learn_SDCA(mat &alpha, mat &zW){
   buildTempVariables();
-  learn_SDCA_Iterations(alpha, zALPHA);
+  learn_SDCA_Iterations(alpha, zW);
   unBuildTempVariables();
 }
 void learnLinearMultiClassSVM::learn_SDCA_Iterations(mat &alpha, mat &W){
@@ -133,7 +133,7 @@ void learnLinearMultiClassSVM::acc_learn_SDCA(mat &zW){
     learn_SDCA_Iterations(alpha, zW);
     W_tt = zW;
     zW = (1+beta)*zW - beta * W_t;
-    W_t = W_tt
+    W_t = W_tt;
   }
   unBuildTempVariables();  
   zW = W_t;

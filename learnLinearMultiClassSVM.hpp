@@ -1,12 +1,12 @@
-#ifndef _learnMultiClassSVM__
-#define _learnMultiClassSVM__
+#ifndef _learnLinearMultiClassSVM__
+#define _learnLinearMultiClassSVM__
 #include "learnSVM.hpp"
 
 
 
-class learnMultiClassSVM: public learnSVM{
+class learnLinearMultiClassSVM: public learnSVM{
 public:
-  learnMultiClassSVM(ivec &y,matd &data,size_t k,
+  learnLinearMultiClassSVM(ivec &y,matd &data,size_t k,
 		     unsigned int iter=100,unsigned int accIter=0,
 		     double lambda=1);
   virtual void learn_SDCA(mat &alpha, mat &zALPHA);
@@ -20,7 +20,7 @@ protected:
   size_t _k;
   double _gamma;
   //
-  ArrayXd _pp;
+  ArrayXd _p;
 
   ArrayXd _mu;
   ArrayXd _a;
