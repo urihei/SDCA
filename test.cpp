@@ -66,12 +66,14 @@ int main(int argc,char ** argv){
   alpha1.setZero();
   mat zAlpha(k,n);
   zAlpha.setZero();
+  //  mat zAlpha = MatrixXd::Random(k,n);
   MatrixXd* dataPt = svm.getData();
   MatrixXd data = *dataPt;
   cerr<<"Finish reading data"<<endl;
   time_t start =time(NULL);
   svm.learn_SDCA(alpha1,zAlpha);
   cout<<"time :"<<time(NULL) - start<<endl;
+  //return 0;
   //eval
   //classify
   MatrixXd ya(k,n);
@@ -88,8 +90,8 @@ int main(int argc,char ** argv){
   
   mat alpha2(k,n);
   alpha2.setZero();
-  svm.setAccIter(100);
-  svm.setIter(5*n);
+  svm.setAccIter(500);
+  svm.setIter(n);
   start =time(NULL);
   svm.acc_learn_SDCA(alpha2);
     cout<<"time :"<<time(NULL) - start<<endl;

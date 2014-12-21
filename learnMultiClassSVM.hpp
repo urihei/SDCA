@@ -15,7 +15,7 @@ public:
     virtual void setGamma(double gamma);
     virtual double getGamma();
 protected:
-    
+    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a,ArrayXd &OneToK);
     size_t _k;
     double _gamma;
 };
