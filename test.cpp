@@ -10,7 +10,8 @@
 #include "usedFun.hpp"
 #include <map>
 
-#include "learnMultiClassSVM.hpp"
+#include "kernelSVM.hpp"
+#include "linearSVM.hpp"
 using namespace Eigen;
 using namespace std;
 
@@ -22,8 +23,8 @@ int ReadData(string fileName,matd& data,ivec & label){
     ifstream myfile;
     myfile.open(fileName.c_str(),ifstream::in);
     double tmp;
-    map<size_t,int> lMap;
-    size_t countLabel = 0;
+    map<int,size_t> lMap;
+    unsigned int countLabel = 0;
     if (!myfile.is_open()){
         cerr << "Unable to open file" << fileName<<endl; 
         assert(false);
@@ -37,11 +38,12 @@ int ReadData(string fileName,matd& data,ivec & label){
                 v.push_back(tmp);
         }
         int cl = (int)(v.back());
-        if(lMap.count(cl) > 0){
-            label.push_back(lMap[cl]);
+        map<int,size_t>::iterator lb = lMap.lower_bound(cl);
+        if(lb != lMap.end() && !(lMap.key_comp()(cl, lb->first))){
+            label.push_back(*lb);
         }else{
             label.push_back(countLabel);
-            lMap[cl] = countLabel;
+            lMap.insert(lb, map<int,size_t >::value_type(cl, countLabel));
             countLabel++;
         }
 
@@ -61,7 +63,7 @@ int main(int argc,char ** argv){
   size_t k =  ReadData(fileName,data_t,y_t);
   size_t n = y_t.size();
   double lambda = 10/(n+0.0);
-  learnMultiClassSVM svm(y_t,data_t,k,100*n,0,lambda);
+  kernelSVM svm(y_t,data_t,k,100*n,0,lambda);
   mat alpha1(k,n);
   alpha1.setZero();
   mat zAlpha(k,n);
