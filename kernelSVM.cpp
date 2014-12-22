@@ -48,20 +48,21 @@ void kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
         p = lambdaN * (alpha * _kernel.col(i) + zALPHAtimeK.col(i));
         p = p - p(curLabel) +1;
 
-        p(curLabel) = 0;        
+        p(curLabel) = 0;
 
         mu = p/(_gamma+(squaredNormData(i)*lambdaN));
         C = 1/(1+(gammaLambdan/squaredNormData(i)));
 
-        optimizeDual_SDCA(mu,C,a);
-        //optimizeDual_SDCA(mu,C,alpha,i,curLabel);
+        //optimizeDual_SDCA(mu,C,a);
+        optimizeDual_SDCA(mu,C,alpha,i,curLabel);
         // END optimizeDual_SDCA
-                alpha.col(i) = -a;
-        alpha(_y[i],i) = a.matrix().lpNorm<1>();
+        //alpha.col(i) = -a;
+        //alpha(_y[i],i) = a.matrix().lpNorm<1>();
                 
         ind++;
     }
     _kernel += squaredNormData.asDiagonal();
+    //    cerr<<alpha<<endl;
     _alpha = alpha;
     
     delete prm;
@@ -96,7 +97,6 @@ void kernelSVM::classify(matd data, ivec &res){
     size_t n = mData.cols();
     MatrixXd ya(_k,n);
     ya = 1/(_lambda*_n) * (_alpha * mData);
-  
     MatrixXf::Index index;
     for(size_t i=0;i<n;i++){
         ya.col(i).maxCoeff(&index);

@@ -45,8 +45,8 @@ void svm::fillMatrix(matd data1, mat &data2){
         }
     }
 }
-//void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
-void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
+void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
+//void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
     ArrayXd muh(_k);
     ArrayXd mub(_k);
     ArrayXd z(_k);   
@@ -82,19 +82,19 @@ void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
 
     if(indF >= _k){
         // size_t indJ = findFirst(z.data(),_k)-1;
-        //a.col(i) = (mu+((1-mub(indJ))/(indJ+1))).max(0);
-        a  = (mu+((1-mub(indJ))/(indJ+1))).max(0);
-        //        if(((a.col(i).array() - mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
-        if(((a - mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
-            //a.col(i).setZero();
-            a.setZero();
-        }/*else{
+        a.col(i) = (mu+((1-mub(indJ))/(indJ+1))).max(0);
+        //a  = (mu+((1-mub(indJ))/(indJ+1))).max(0);
+        if(((a.col(i).array() - mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
+            //if(((a - mu).matrix().squaredNorm()+C) > (mu.matrix().squaredNorm())){
+            a.col(i).setZero();
+            //a.setZero();
+        }else{
             a.col(i) = -1* a.col(i);
             a(yi,i) = 1;
-            }*/
+        }
     }else{
-        //a.col(i) = -1*(mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
-        a = (mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
-        //a(yi,i) = normOne(indF);
+        a.col(i) = -1*(mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
+        //a = (mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
+        a(yi,i) = normOne(indF);
     }
 }

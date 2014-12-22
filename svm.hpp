@@ -33,8 +33,8 @@ public:
     
 protected:
 
-    //    void optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t curLabel);
-    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a);
+        void optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t curLabel);
+    //    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a);
     void fillMatrix(matd data1, mat &data2);
 
     unsigned int _iter; // number of iteration out loop

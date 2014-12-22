@@ -48,12 +48,12 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW){
         mu = p/(_gamma+(squaredNormData(i)*lambdaN));
         C = 1/(1+(gammaLambdan/squaredNormData(i)));
 
-        optimizeDual_SDCA(mu,C,a);
-        //optimizeDual_SDCA(mu,C,alpha,i,curLabel);
+        //    optimizeDual_SDCA(mu,C,a);
+        optimizeDual_SDCA(mu,C,alpha,i,curLabel);
         // END optimizeDual_SDCA
 
-        alpha.col(i)     = - a;
-        alpha(curLabel,i) = a.matrix().lpNorm<1>();
+        //alpha.col(i)     = - a;
+        //alpha(curLabel,i) = a.matrix().lpNorm<1>();
     
         _W += lambdaN * _data.col(i)*alpha.col(i).transpose(); 
                 
