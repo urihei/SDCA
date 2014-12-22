@@ -13,12 +13,12 @@ typedef vector<size_t> ivec;
 typedef vector<vec> matd;
 typedef MatrixXd mat;
 
-class SVM{
+class svm{
 public:
     svm(size_t k, double lambda=1, double gamma = 1,unsigned int iter = 50, unsigned int _accIter = 0);
     virtual void learn_SDCA(mat &alpha, mat &zALPHA)=0;
-    virtual void learn_acc_SDCA(mat &alpha)=0;
-    virtual ivec classify(mat data)=0;
+    virtual void learn_acc_SDCA()=0;
+    virtual void classify(matd data,ivec &res)=0;
     virtual void saveModel(string fileName)=0;
 
     virtual void setIter(unsigned int iter);
@@ -30,12 +30,11 @@ public:
     virtual unsigned int getAccIter();
     virtual double getLambda();
     virtual double getGamma();
-
-    ~learnSVM();
     
 protected:
 
-    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a,size_t curLabel);
+    //    void optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t curLabel);
+    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a);
     void fillMatrix(matd data1, mat &data2);
 
     unsigned int _iter; // number of iteration out loop
@@ -47,9 +46,6 @@ protected:
     ivec _y;
     size_t _k;
 
-    static ArrayXd OneToK;
+    ArrayXd _OneToK;
 };
-ArrayXd svm::OneToK(_k);
-OneToK.setOnes();
-cumsum(OneToK.data(),_k,OneToK.data());
 #endif
