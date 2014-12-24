@@ -12,6 +12,9 @@
 
 #include "kernelSVM.hpp"
 #include "linearSVM.hpp"
+#include "kernelFunctionSVM.hpp"
+#include "rbfKernelSVM.hpp"
+#include "polyKernelSVM.hpp"
 using namespace Eigen;
 using namespace std;
 
@@ -63,8 +66,45 @@ int main(int argc,char ** argv){
     size_t k =  ReadData(fileName,data_t,y_t);
     size_t n = y_t.size();
     double lambda = 10/(n+0.0);
+    polyKernelSVM svm(y_t,data_t,k,lambda,0.1,500*n,0,3);
 
-    kernelSVM svm(y_t,data_t,k,lambda,0.1,100*n,0);
+    mat alpha1(k,n);
+    alpha1.setZero();
+    //mat zW(data_t[0].size(),k);
+    mat zAlpha(k,n);
+    zAlpha.setZero();
+    //  mat zAlpha = MatrixXd::Random(k,n);
+    cerr<<"Finish reading data"<<endl;
+    time_t start =time(NULL);
+    svm.learn_SDCA(alpha1,zAlpha);
+    cout<<"time :"<<time(NULL) - start<<endl;
+    //return 0;
+    //eval
+    //classify
+    ivec y_res(n);
+    svm.classify(data_t,y_res);
+    size_t count =0;
+    for(size_t i=0;i<n;i++){
+        //comapre
+        //        cerr<<y_res[i]<<"<->"<<y_t[i]<<endl;
+        if(y_res[i] != y_t[i])
+            count++;
+    }
+    cout<<"The Number of train error "<<count<<endl;
+    svm.setAccIter(100);
+    svm.setIter(5*n);
+    start =time(NULL);
+    svm.learn_acc_SDCA();
+    cout<<"time :"<<time(NULL) - start<<endl;
+    svm.classify(data_t,y_res);
+    count =0;
+    for(size_t i=0;i<n;i++){
+        //comapre
+        if(y_res[i] != y_t[i])
+            count++;
+    }
+    cout<<"The Number of train error "<<count<<endl;
+    /*    kernelSVM svm(y_t,data_t,k,lambda,0.1,100*n,0);
 
     mat alpha1(k,n);
     alpha1.setZero();
@@ -102,8 +142,8 @@ int main(int argc,char ** argv){
         if(y_res[i] != y_t[i])
             count++;
     }
-    cout<<"The Number of train error "<<count<<endl;
-    srand( (unsigned)time(NULL) );
+    cout<<"The Number of train error "<<count<<endl;*/
+    //    srand( (unsigned)time(NULL) );
     // MatrixXd data = MatrixXd::Random(3,4);
     // MatrixXd data2(3,4);
     // data2 = data;

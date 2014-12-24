@@ -5,10 +5,15 @@ linearSVM::linearSVM(ivec &y,matd &data,size_t k,
                      double lambda, double gamma,
                      unsigned int iter,unsigned int accIter):svm(k,lambda,gamma,iter,accIter){
     fillMatrix(data,_data);
+    _data.transposeInPlace();
     _n = _data.cols();
     _p = _data.rows();
     _y = y;
     _W.resize(_p,_k);
+    _squaredNormData.resize(_n);
+    for(size_t i = 0;i<_n;++i){
+        _squaredNormData(i) = _data.col(i).squaredNorm();
+    }
 }
 void linearSVM::learn_SDCA(mat &alpha, mat &zW){
 
@@ -27,8 +32,6 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW){
     ArrayXd a(_k);
     double C;
   
-    VectorXd squaredNormData(_n);
-    squaredNormData = _data.diagonal();
   
     _W = zW + lambdaN * _data *alpha.transpose(); 
 
@@ -39,14 +42,19 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW){
         }
         size_t i = prm[ind];
         size_t curLabel = _y[i];
+
         _W -= lambdaN * _data.col(i)*alpha.col(i).transpose();
+                
         p = _W.transpose() * _data.col(i);
-        p -=  p(curLabel) +1;
+        p -= p(curLabel) -1;
         p(curLabel) = 0;
 
-        //
-        mu = p/(_gamma+(squaredNormData(i)*lambdaN));
-        C = 1/(1+(gammaLambdan/squaredNormData(i)));
+
+
+        mu = p/(_gamma+(_squaredNormData(i)*lambdaN));
+        C = 1/(1+(gammaLambdan/_squaredNormData(i)));
+
+
 
         //    optimizeDual_SDCA(mu,C,a);
         optimizeDual_SDCA(mu,C,alpha,i,curLabel);
@@ -54,9 +62,10 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW){
 
         //alpha.col(i)     = - a;
         //alpha(curLabel,i) = a.matrix().lpNorm<1>();
-    
+
+        
         _W += lambdaN * _data.col(i)*alpha.col(i).transpose(); 
-                
+
         ind++;
     }
 }
@@ -66,12 +75,12 @@ void linearSVM::learn_acc_SDCA(){
     double mu = _lambda/2;
     double rho = mu+kappa;
     double eta = sqrt(mu/rho);
-    double beta = (1-eta)/(1+eta);
+    double beta = (1.0-eta)/(1.0+eta);
 
     mat alpha(_k,_n);
     alpha.setZero();
 
-    mat zW(_k,_n);
+    mat zW(_p,_k);
     zW.setZero();
     
     mat W_t(_p,_k);
@@ -86,10 +95,10 @@ void linearSVM::learn_acc_SDCA(){
 void linearSVM::classify(matd data,ivec &res){
     MatrixXd mData;
     fillMatrix(data,mData);
+    mData.transposeInPlace();
     size_t n = mData.cols();
     MatrixXd ya(_k,n);
     ya = _W.transpose()*_data;
-  
     MatrixXf::Index index;
     for(size_t i=0;i<n;i++){
         ya.col(i).maxCoeff(&index);

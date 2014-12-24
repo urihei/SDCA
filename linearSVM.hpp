@@ -22,6 +22,6 @@ protected:
 
     mat _W;
     mat _data;
-    
+    VectorXd _squaredNormData;    
 };
 #endif

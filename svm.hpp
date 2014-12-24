@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
-
+#include <iostream>
 using namespace Eigen;
 using namespace std;
 
