@@ -34,17 +34,6 @@ double svm::getGamma(){
   return _gamma;
 }
 
-void svm::fillMatrix(matd data1, mat &data2){
-    size_t n = data1.size();
-    size_t p =  data1[0].size();
-    
-    data2.resize(n,p);
-    for(size_t i=0;i<n;++i){
-        for(size_t j=0;j<p;++j){
-            data2(i,j) = data1[i][j];
-        }
-    }
-}
 void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
 //void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
     ArrayXd muh(_k);
