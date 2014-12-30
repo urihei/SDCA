@@ -12,11 +12,13 @@ public:
     
     virtual void learn_SDCA(mat &alpha, mat &zW);
     virtual void learn_acc_SDCA();
-    virtual void classify(matd data,ivec &res);
+    virtual double getGap();
+    virtual void classify(matd &data,ivec &res);
     virtual void saveModel(string fileName);
     
 protected:
-
+    double getGap(mat &alpha, mat &zW);
+    void learn_SDCA(mat &alpha, mat &zW,double eps);
     size_t _n;
     size_t _p;// number of features
 

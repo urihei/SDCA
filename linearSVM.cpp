@@ -16,6 +16,9 @@ linearSVM::linearSVM(ivec &y,matd &data,size_t k,
     }
 }
 void linearSVM::learn_SDCA(mat &alpha, mat &zW){
+    learn_SDCA(alpha, zW,_eps);
+}
+void linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
 
 
     double lambdaN = 1/(_n*_lambda);
@@ -35,7 +38,9 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW){
   
     _W = zW + lambdaN * _data *alpha.transpose(); 
 
-    for(unsigned int t=0;t<_iter;++t){
+    double gap = eps + 1;
+    
+    for(unsigned int t=1;t<=_iter;++t){
         if((ind % _n) == 0){
             randperm(_n,prm);
             ind = 0;
@@ -66,8 +71,17 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW){
         
         _W += lambdaN * _data.col(i)*alpha.col(i).transpose(); 
 
+        if( t % (_n* _chackGap) == 0){
+            gap = getGap(alpha,zW);
+            
+        }
+        
+        if(gap < eps)
+            break;
+
         ind++;
     }
+
 }
 
 void linearSVM::learn_acc_SDCA(){
@@ -86,13 +100,55 @@ void linearSVM::learn_acc_SDCA(){
     mat W_t(_p,_k);
     W_t.setZero();
 
-    for(unsigned int t =0; t<_accIter; ++t){
-        learn_SDCA(alpha, zW);
+    
+    double OnePetaSquare = 1+1/eta*1/eta;
+    double xi = OnePetaSquare * (1-_gamma/(2*(_k-1)));
+    eta = eta /2;
+    cerr<<"beta:"<<beta<<endl;
+    for(unsigned int t =1; t<=_accIter; ++t){
+        learn_SDCA(alpha, zW,eta/OnePetaSquare * xi);
         zW = (1+beta)*_W - beta * W_t;
         W_t = _W;
+        xi = xi * (1-eta);
     }
 }
-void linearSVM::classify(matd data,ivec &res){
+
+double linearSVM::getGap(mat &alpha, mat &zW){
+    double pr = 0.0;
+    double du = 0.0;
+
+    ArrayXd a(_k);
+    ArrayXd b(_k);
+    
+    for(size_t i = 0; i<_n;++i){
+        size_t currentLabel = _y[i];
+
+        a = _W.transpose() * _data.col(i);
+        a = (a - a(currentLabel) +1)/_gamma;
+        a(currentLabel) = 0;
+
+        project_SDCA(a,b);
+
+        b = b - a;
+        pr += _gamma/2 * (a.matrix().squaredNorm() - b.matrix().squaredNorm());
+        du -= alpha.col(i).sum() - alpha(currentLabel,i) +
+            _gamma/2 * (alpha.col(i).squaredNorm() - alpha(currentLabel,i)*alpha(currentLabel,i));
+
+    }
+    pr = pr/_n + _lambda * (_W.array() * (_W.array() - zW.array())).sum();
+    du /= _n;
+    double gap = pr - du;
+    cerr<< "primal:  "<<pr<<"\t dual"<<du<<"\t Gap: "<<gap<<endl;
+    return gap;
+}
+double linearSVM::getGap(){
+    mat zW(_p,_k);
+    zW.setZero();
+    mat alpha(_k,_n);
+    alpha.setZero();
+    return getGap(alpha,zW);
+}
+void linearSVM::classify(matd &data,ivec &res){
     MatrixXd mData;
     fillMatrix(data,mData);
     mData.transposeInPlace();

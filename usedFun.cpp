@@ -49,7 +49,7 @@ size_t findFirst(double* a,size_t len){
   return i;
 }
 
-void usedFun::fillMatrix( vector<vector<double>> data1, MatrixXd &data2){
+void fillMatrix(matd &data1, mat &data2){
   size_t n = data1.size();
   size_t p =  data1[0].size();
     

@@ -2,10 +2,11 @@
 #include "usedFun.hpp"
 
 svm::svm(size_t k,double lambda, double gamma,unsigned int iter, unsigned int accIter):_iter(iter),_accIter(accIter),_lambda(lambda),_gamma(gamma),_k(k){
-_OneToK.resize(_k);
-_OneToK.setOnes();
-cumsum(_OneToK.data(),_k,_OneToK.data());
-
+    _OneToK.resize(_k);
+    _OneToK.setOnes();
+    cumsum(_OneToK.data(),_k,_OneToK.data());
+    _eps = 1e-3;
+    _chackGap = 5;
 }
 
 void svm::setIter(unsigned int iter){
@@ -14,11 +15,17 @@ void svm::setIter(unsigned int iter){
 void svm::setAccIter(unsigned int iter){
     _accIter = iter;
 }
+void svm::setCheckGap(unsigned int checkGap){
+    _chackGap = checkGap;
+}
 void svm::setLambda(double lambda){
     _lambda = lambda;
 }
 void svm::setGamma(double gamma){
-  _gamma = gamma;
+    _gamma = gamma;
+}
+void svm::setEpsilon(double epsilon){
+    _eps = epsilon;
 }
 
 unsigned int svm::getIter(){
@@ -27,15 +34,20 @@ unsigned int svm::getIter(){
 unsigned int svm::getAccIter(){
     return _accIter;
 }
+unsigned int svm::getCheckGap(){
+    return _chackGap;
+}
 double svm::getLambda(){
     return _lambda;
 }
 double svm::getGamma(){
-  return _gamma;
+    return _gamma;
 }
-
+double svm::getEpsilon(){
+    return _eps;
+}
 void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
-//void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
+    //void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
     ArrayXd muh(_k);
     ArrayXd mub(_k);
     ArrayXd z(_k);   
@@ -86,4 +98,27 @@ void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
         //a = (mu+((normOne(indF)-mub(indF))/(indF+1))).max(0);
         a(yi,i) = normOne(indF);
     }
+}
+void svm::project_SDCA(ArrayXd &mu,ArrayXd &b){
+    ArrayXd muh(_k);
+    ArrayXd mub(_k);
+    ArrayXd z(_k);   
+    
+    muh = mu.max(0);
+    if(muh.sum() <= 1){
+        b = muh;
+        return;
+    }
+    sort(muh.data(),muh.data()+_k);
+    muh.reverseInPlace();
+    cumsum(muh.data(),_k,mub.data());
+
+    z = 1 + _OneToK * muh - mub;
+
+    size_t ind = _k-1;
+    while( ind > 0 && z(ind)<= 0){
+        ind --;
+    }
+    b = mu+ (1-mub(ind))/(ind+1);
+    b = b.max(0);
 }

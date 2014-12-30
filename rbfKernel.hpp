@@ -16,6 +16,8 @@ public:
   virtual void setSigma(double sigma);
   virtual double getSigma();
 protected:
+    size_t _p;
+    size_t _n;
   MatrixXd _data;
   double _sigma;
   ArrayXd _dataSquare;

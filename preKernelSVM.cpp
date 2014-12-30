@@ -1,15 +1,17 @@
-#include "kernelSVM.hpp"
+#include "preKernelSVM.hpp"
 #include "usedFun.hpp"
 
-kernelSVM::kernelSVM(ivec &y,matd &kernel, size_t k,
+preKernelSVM::preKernelSVM(ivec &y,matd &kernel, size_t k,
           double lambda, double gamma,
-          unsigned int iter,unsigned int accIter):svm(k,lambda,gamma,iter,accIter){
+          unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
     fillMatrix(kernel,_kernel);
     _n = _kernel.cols();
     _y = y;
     _alpha.resize(_k,_n);
 }
-void kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
+void preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
+}
+void preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     double lambdaN = 1/(_n*_lambda);
     
     double gammaLambdan = _gamma*_n*_lambda;
@@ -35,8 +37,9 @@ void kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
     
     _kernel.diagonal().setZero();
 
+    double gap = eps + 1;
     
-    for(unsigned int t=0;t<_iter;++t){
+    for(unsigned int t=1;t<=_iter;++t){
         if((ind % _n) == 0){
             randperm(_n,prm);
             ind = 0;
@@ -58,7 +61,14 @@ void kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
         // END optimizeDual_SDCA
         //alpha.col(i) = -a;
         //alpha(_y[i],i) = a.matrix().lpNorm<1>();
-                
+        if( t % (_n* _chackGap) == 0){
+            gap = getGap(alpha,zALPHA);
+            
+        }
+        
+        if(gap < eps)
+            break;
+        
         ind++;
     }
     _kernel += squaredNormData.asDiagonal();
@@ -67,31 +77,9 @@ void kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
     
     delete prm;
 }
-void kernelSVM::learn_acc_SDCA(){
-    double kappa = 100*_lambda;
-    double mu = _lambda/2;
-    double rho = mu+kappa;
-    double eta = sqrt(mu/rho);
-    double beta = (1-eta)/(1+eta);
-
-    mat alpha(_k,_n);
-    alpha.setZero();
-    mat zALPHA(_k,_n);
-    zALPHA.setZero();
-    mat ALPHA_t(_k,_n);
-    ALPHA_t.setZero();
-    MatrixXd zALPHA_t(_k,_n);
-    for(unsigned int t =0;t<_accIter;++t){
-        learn_SDCA(alpha,zALPHA);
-        zALPHA_t = zALPHA;
-        zALPHA = (1+beta)*(zALPHA + alpha) - beta * ALPHA_t;
-        ALPHA_t = zALPHA_t+alpha;
-    }
-    _alpha = ALPHA_t;
-}
 
 
-void kernelSVM::classify(matd data, ivec &res){
+void preKernelSVM::classify(matd data, ivec &res){
     MatrixXd mData;
     fillMatrix(data,mData);
     size_t n = mData.cols();
@@ -104,4 +92,8 @@ void kernelSVM::classify(matd data, ivec &res){
     }
   
 }
-void kernelSVM::saveModel(string fileName){}
+
+void preKernelSVM::getCol(size_t i,VectorXd & kerCol){
+    kerCol = _kernel.col(i);
+}
+

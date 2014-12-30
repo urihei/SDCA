@@ -1,26 +1,25 @@
-#ifndef _kernelSVM__
-#define _kernelSVM__
-#include "svm.hpp"
+#ifndef _preKernelSVM__
+#define _preKernelSVM__
+#include "baseKernelSVM.hpp"
 
 
 
-class kernelSVM: public svm{
+class preKernelSVM: public baseKernelSVM{
 public:
-    kernelSVM(ivec &y,matd &data,size_t k,
+    preKernelSVM(ivec &y,matd &kernel,size_t k,
               double lambda=1, double gamma=1,
               unsigned int iter=50,unsigned int accIter=0);
     
     virtual void learn_SDCA(mat &alpha, mat &zAlpha);
-    virtual void learn_acc_SDCA();
-    virtual void classify(matd data,ivec &res);
-    virtual void saveModel(string fileName);
     
+    virtual void classify(matd data,ivec &res);
+
+
+    virtual void getCol(size_t i,VectorXd & kerCol);
 protected:
 
-    size_t _n;
-
-    mat _alpha;
     mat _kernel;
+    virtual void learn_SDCA(mat &alpha, mat &zAlpha,double eps);
     
 };
 #endif

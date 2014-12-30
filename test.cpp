@@ -12,9 +12,11 @@
 
 #include "kernelSVM.hpp"
 #include "linearSVM.hpp"
-#include "kernelFunctionSVM.hpp"
-#include "rbfKernelSVM.hpp"
-#include "polyKernelSVM.hpp"
+#include "preKernelSVM.hpp"
+#include "kernelSVM.hpp"
+#include "rbfKernel.hpp"
+#include "polyKernel.hpp"
+
 using namespace Eigen;
 using namespace std;
 
@@ -66,17 +68,19 @@ int main(int argc,char ** argv){
     size_t k =  ReadData(fileName,data_t,y_t);
     size_t n = y_t.size();
     double lambda = 10/(n+0.0);
-    polyKernelSVM svm(y_t,data_t,k,lambda,0.1,500*n,0,3);
-
+    polyKernel* ker = new polyKernel(data_t,2,1);
+    kernelSVM svm(y_t,k,ker,lambda,0.1,100*n);
+    //linearSVM svm(y_t,data_t,k,lambda,0.1,100*n);
     mat alpha1(k,n);
     alpha1.setZero();
-    //mat zW(data_t[0].size(),k);
+    mat zW(data_t[0].size(),k);
+    zW.setZero();
     mat zAlpha(k,n);
     zAlpha.setZero();
     //  mat zAlpha = MatrixXd::Random(k,n);
     cerr<<"Finish reading data"<<endl;
     time_t start =time(NULL);
-    svm.learn_SDCA(alpha1,zAlpha);
+    svm.learn_SDCA(alpha1,zAlpha);//zW);
     cout<<"time :"<<time(NULL) - start<<endl;
     //return 0;
     //eval

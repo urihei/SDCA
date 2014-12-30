@@ -4,7 +4,7 @@
 polyKernel::polyKernel(matd &data, double degree, double c):_degree(degree),_c(c){
   fillMatrix(data,_data);
   _data.transposeInPlace();
-   
+  _p = _data.rows();
 }
 
 double polyKernel::squaredNorm(size_t i){

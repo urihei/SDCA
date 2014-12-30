@@ -1,9 +1,11 @@
 #include "rbfKernel.hpp"
 #include "usedFun.hpp"
 
-rbfKernel::rbfKernel(matd &data,double sigma =1):
+rbfKernel::rbfKernel(matd &data,double sigma):
 _sigma(2*sigma){
   fillMatrix(data,_data);
+  _p = _data.rows();
+  _n = _data.cols();
   _data.transposeInPlace();
   _dataSquare.resize(_n);
   for(size_t i=0; i<_n;++i){
