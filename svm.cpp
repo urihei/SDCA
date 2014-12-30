@@ -103,7 +103,7 @@ void svm::project_SDCA(ArrayXd &mu,ArrayXd &b){
     ArrayXd muh(_k);
     ArrayXd mub(_k);
     ArrayXd z(_k);   
-    
+    //
     muh = mu.max(0);
     if(muh.sum() <= 1){
         b = muh;
