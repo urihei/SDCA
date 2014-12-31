@@ -15,10 +15,10 @@ linearSVM::linearSVM(ivec &y,matd &data,size_t k,
         _squaredNormData(i) = _data.col(i).squaredNorm();
     }
 }
-void linearSVM::learn_SDCA(mat &alpha, mat &zW){
-    learn_SDCA(alpha, zW,_eps);
+double linearSVM::learn_SDCA(mat &alpha, mat &zW){
+    return learn_SDCA(alpha, zW,_eps);
 }
-void linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
+double linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
 
 
     double lambdaN = 1/(_n*_lambda);
@@ -81,7 +81,8 @@ void linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
 
         ind++;
     }
-
+    delete prm;
+    return gap;
 }
 
 void linearSVM::learn_acc_SDCA(){
@@ -101,12 +102,25 @@ void linearSVM::learn_acc_SDCA(){
     W_t.setZero();
 
     
+    double gap = _eps + 1.0;
+    double epsilon_t;
+
+
     double OnePetaSquare = 1+1/eta*1/eta;
     double xi = OnePetaSquare * (1-_gamma/(2*(_k-1)));
     eta = eta /2;
-    cerr<<"beta:"<<beta<<endl;
+    
+    
     for(unsigned int t =1; t<=_accIter; ++t){
-        learn_SDCA(alpha, zW,eta/OnePetaSquare * xi);
+        epsilon_t = learn_SDCA(alpha, zW,eta/OnePetaSquare * xi);
+	if(t%_chackGap ==0){
+	  cerr<<"ACC iter: "<<t<<" gap: ";
+	  gap = (1+rho/mu)*epsilon_t + 
+	    (rho*kappa)/(2*mu)*(_W-zW).squaredNorm();
+	  cerr<<gap<<"\t";
+	}
+        if(gap < _eps)
+	  break;
         zW = (1+beta)*_W - beta * W_t;
         W_t = _W;
         xi = xi * (1-eta);

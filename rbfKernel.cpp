@@ -4,9 +4,9 @@
 rbfKernel::rbfKernel(matd &data,double sigma):
 _sigma(2*sigma){
   fillMatrix(data,_data);
+  _data.transposeInPlace();
   _p = _data.rows();
   _n = _data.cols();
-  _data.transposeInPlace();
   _dataSquare.resize(_n);
   for(size_t i=0; i<_n;++i){
     _dataSquare(i) = _data.col(i).squaredNorm();

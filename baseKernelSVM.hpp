@@ -9,7 +9,7 @@ class baseKernelSVM: public svm{
 public:
     baseKernelSVM(size_t k, double lambda=1, double gamma = 1,
         unsigned int iter = 50, unsigned int _accIter = 0);
-    virtual void learn_SDCA(mat &alpha, mat &zAlpha)=0;
+    virtual double learn_SDCA(mat &alpha, mat &zAlpha)=0;
 
     virtual void learn_acc_SDCA();
     virtual void classify(matd &data,ivec &res)=0;
@@ -24,6 +24,6 @@ protected:
     
     mat _alpha;
     double getGap(mat &alpha,mat &zALPHA);
-    virtual void learn_SDCA(mat &alpha, mat &zAlpha,double epsilon)=0;
+  virtual double learn_SDCA(mat &alpha, mat &zAlpha,double epsilon)=0;
 };
 #endif
