@@ -12,13 +12,11 @@ reluL1Kernel::reluL1Kernel(matd &data){
   }
 }
 double reluL1Kernel::squaredNorm(size_t i){
-  return 1;
+  return _dataNorm(i)*_dataNorm(i);
 }
 void reluL1Kernel::dot(size_t i,VectorXd & res){
-  ArrayXd x = (_data.transpose()*_data.col(i)).array() /
-    (_dataSquare[i] * _dataSquare);
-  
-  res =  1-OneDpi*acos();
+  ArrayXd x = (_data.transpose()*_data.col(i)).array();
+  res =  M_PI
 }
 void reluL1Kernel::dot(vec &v,VectorXd &res){
   VectorXd tmp(_p);
