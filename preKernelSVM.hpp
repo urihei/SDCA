@@ -10,7 +10,7 @@ public:
               double lambda=1, double gamma=1,
               unsigned int iter=50,unsigned int accIter=0);
     
-    virtual void learn_SDCA(mat &alpha, mat &zAlpha);
+    virtual double learn_SDCA(mat &alpha, mat &zAlpha);
     
     virtual void classify(matd data,ivec &res);
 
@@ -19,7 +19,7 @@ public:
 protected:
 
     mat _kernel;
-    virtual void learn_SDCA(mat &alpha, mat &zAlpha,double eps);
+  virtual double learn_SDCA(mat &alpha, mat &zAlpha,double eps);
     
 };
 #endif

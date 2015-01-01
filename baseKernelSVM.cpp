@@ -10,8 +10,9 @@ double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
     mat az = zALPHA + alpha;
     ArrayXd a(_k);
 
+
     double normPart = 0.0;
-    
+
     VectorXd kerCol(_n);    
     ArrayXd b(_k);
     
@@ -20,6 +21,7 @@ double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
         
         getCol(i,kerCol);//_ker->dot(i,kerCol);
         a = lambdaN * az * kerCol;
+
         normPart += lambdaN*(a * alpha.col(i).array()).sum();
         
         a = (a - a(currentLabel)  + 1)/_gamma;
@@ -57,23 +59,34 @@ void baseKernelSVM::learn_acc_SDCA(){
     zALPHA.setZero();
     mat ALPHA_t(_k,_n);
     ALPHA_t.setZero();
-    MatrixXd zALPHA_t(_k,_n)
-        ;
+    MatrixXd zALPHA_t(_k,_n);
+
     double gap = _eps + 1.0;
+    VectorXd kerCol(_n);
+    double epsilon_t;
 
     double OnePetaSquare = 1+1/eta*1/eta;
     double xi = OnePetaSquare * (1-_gamma/(2*(_k-1)));
     eta = eta /2;
-    
+
     for(unsigned int t =1;t<=_accIter;++t){
-        learn_SDCA(alpha,zALPHA,eta/OnePetaSquare * xi);
+        epsilon_t = learn_SDCA(alpha,zALPHA,eta/OnePetaSquare * xi);
         zALPHA_t = zALPHA;
         zALPHA = (1+beta)*(zALPHA + alpha) - beta * ALPHA_t;
         ALPHA_t = zALPHA_t+alpha;
         if(t%_chackGap ==0){
-            cerr<<"ACC iter: "<<t<<"\t";
+            cerr<<"ACC iter: "<<t<<" gap: ";
             _alpha = ALPHA_t;
-            gap = getGap();
+	    double diff = 0;
+	    // sum(diag(alpha * K * alpha'))
+	    for(size_t n=0;n<_n;++n){
+	      getCol(n,kerCol);
+	      for(size_t k=0; k<_k;++k){
+		diff += alpha(k,n)*kerCol.dot(alpha.row(k));
+	      }
+	    }
+	    gap = (1+rho/mu)*epsilon_t + (rho*kappa)/(2*mu)*diff;
+	    cerr<<gap<<"\t";
         }
         if(gap < _eps)
             break;

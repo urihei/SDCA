@@ -10,7 +10,7 @@ class svm{
 public:
     svm(size_t k, double lambda=1, double gamma = 1,
         unsigned int iter = 50, unsigned int _accIter = 0);
-    virtual void learn_SDCA(mat &alpha, mat &zALPHA)=0;
+    virtual double learn_SDCA(mat &alpha, mat &zALPHA)=0;
     virtual void learn_acc_SDCA()=0;
     virtual double getGap()=0;
     virtual void classify(matd &data,ivec &res)=0;

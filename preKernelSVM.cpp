@@ -9,9 +9,10 @@ preKernelSVM::preKernelSVM(ivec &y,matd &kernel, size_t k,
     _y = y;
     _alpha.resize(_k,_n);
 }
-void preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
+double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
+  return learn_SDCA(alpha,zALPHA,_eps);
 }
-void preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
+double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     double lambdaN = 1/(_n*_lambda);
     
     double gammaLambdan = _gamma*_n*_lambda;
@@ -76,6 +77,7 @@ void preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     _alpha = alpha;
     
     delete prm;
+    return gap;
 }
 
 
