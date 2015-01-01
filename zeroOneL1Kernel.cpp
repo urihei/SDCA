@@ -6,29 +6,30 @@ zeroOneL1Kernel::zeroOneL1Kernel(matd &data){
   _data.transposeInPlace();
   _p = _data.rows();
   _n = _data.cols();
-  _dataSquare.resize(_n);
+  _dataNorm.resize(_n);
   for(size_t i=0; i<_n;++i){
-    _dataNorm(i) = _data.col(i).norm();
+    _dataNorm(i) = _data.col(i).stableNorm();
   }
 }
 double zeroOneL1Kernel::squaredNorm(size_t i){
   return 1;
 }
 void zeroOneL1Kernel::dot(size_t i,VectorXd & res){
-  //  cerr<<"R "<<(_data.transpose()*_data.col(i)).rows()<<" C "<<(_data.transpose()*_data.col(i)).cols()<<"<-> R "<<(_dataSquare[i] * _dataSquare).rows()<<" C "<<(_dataSquare[i] * _dataSquare).cols()<<endl;
-
-  res =  1-OneDpi*acos((_data.transpose()*_data.col(i)).array()/
-		       (_dataSquare[i] * _dataSquare));
+    ArrayXd preAn = (((_data.transpose()*_data.col(i)).array()/
+                      (_dataNorm[i] * _dataNorm)).min(1)).max(-1);
+    res =  1-OneDpi*preAn.acos();
 }
 void zeroOneL1Kernel::dot(vec &v,VectorXd &res){
   VectorXd tmp(_p);
-  double squareNormData = 0.0;
+  double normVec = 0.0;
   for(size_t i=0; i<_p;++i){
     tmp(i) = v[i];
-    squareNormData += v[i]*v[i];
+    normVec += v[i]*v[i];
   }
-  res =  1-OneDpi*acos((_data.transpose()*tmp).array()/
-		       (squareNormData * _dataSquare));
+  normVec = sqrt(normVec);
+  ArrayXd preAn = (((_data.transpose()*tmp).array()/
+		       (normVec * _dataNorm)).min(1)).max(-1);
+  res =  1-OneDpi*preAn.acos();
 }
 size_t zeroOneL1Kernel::getN(){
   return _data.cols();

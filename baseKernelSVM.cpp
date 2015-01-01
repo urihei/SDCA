@@ -86,7 +86,7 @@ void baseKernelSVM::learn_acc_SDCA(){
 	      }
 	    }
 	    gap = (1+rho/mu)*epsilon_t + (rho*kappa)/(2*mu)*diff;
-	    cerr<<gap<<"\t";
+	    cerr<<gap<<endl;
         }
         if(gap < _eps)
             break;

@@ -17,7 +17,8 @@
 #include "rbfKernel.hpp"
 #include "polyKernel.hpp"
 #include "zeroOneL1Kernel.hpp"
-#include "linearKernel.hpp"
+#include "reluL1Kernel.hpp"
+//#include "linearKernel.hpp"
 
 
 
@@ -67,9 +68,10 @@ int main(int argc,char ** argv){
     size_t n = y_t.size();
     double lambda = 10/(n+0.0);
     //    polyKernel* ker = new polyKernel(data_t,2,1);
+    //reluL1Kernel* ker = new reluL1Kernel(data_t);
     zeroOneL1Kernel* ker = new zeroOneL1Kernel(data_t);
     //linearKernel* ker = new linearKernel(data_t);
-    kernelSVM svm(y_t,k,ker,lambda,0.1,100*n);
+    kernelSVM svm(y_t,k,ker,lambda,0.0001,100*n);
     //linearSVM svm(y_t,data_t,k,lambda,0.1,100*n);
     mat alpha1(k,n);
     alpha1.setZero();

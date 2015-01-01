@@ -6,27 +6,31 @@ reluL1Kernel::reluL1Kernel(matd &data){
   _data.transposeInPlace();
   _p = _data.rows();
   _n = _data.cols();
-  _dataSquare.resize(_n);
+  _dataNorm.resize(_n);
   for(size_t i=0; i<_n;++i){
-    _dataNorm(i) = _data.col(i).norm();
+    _dataNorm(i) = _data.col(i).stableNorm();
   }
 }
 double reluL1Kernel::squaredNorm(size_t i){
   return _dataNorm(i)*_dataNorm(i);
 }
 void reluL1Kernel::dot(size_t i,VectorXd & res){
-  ArrayXd x = (_data.transpose()*_data.col(i)).array();
-  res =  M_PI
+  ArrayXd prod = (_data.transpose()*_data.col(i)).array();
+  ArrayXd nor = _dataNorm(i) * _dataNorm;
+  res =  (M_PI-(prod/(nor)).max(-1).min(1).acos())* prod +(nor.square()-prod.square()).max(0).sqrt() ;
 }
 void reluL1Kernel::dot(vec &v,VectorXd &res){
   VectorXd tmp(_p);
-  double squareNormData = 0.0;
+  double normVec = 0.0;
   for(size_t i=0; i<_p;++i){
     tmp(i) = v[i];
-    squareNormData += v[i]*v[i];
+    normVec += v[i]*v[i];
   }
-  res =  1-OneDpi*acos((_data.transpose()*tmp).array()/
-		       (squareNormData * _dataSquare));
+  normVec = sqrt(normVec);
+  ArrayXd prod = (_data.transpose()*tmp).array();
+  ArrayXd nor = normVec * _dataNorm;
+  res =  (M_PI-(prod/(nor)).min(1).max(-1).acos())* prod +(nor.square()-prod.square()).max(0).sqrt() ;
+
 }
 size_t reluL1Kernel::getN(){
   return _data.cols();
