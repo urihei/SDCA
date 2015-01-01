@@ -9,8 +9,8 @@ double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
 
     mat az = zALPHA + alpha;
     ArrayXd a(_k);
-    ArrayXd normPart(_k);
-    normPart.setZero();
+
+    double normPart = 0.0;
     
     VectorXd kerCol(_n);    
     ArrayXd b(_k);
@@ -20,7 +20,7 @@ double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
         
         getCol(i,kerCol);//_ker->dot(i,kerCol);
         a = lambdaN * az * kerCol;
-        normPart += a * lambdaN*alpha.col(i).array();
+        normPart += lambdaN*(a * alpha.col(i).array()).sum();
         
         a = (a - a(currentLabel)  + 1)/_gamma;
         a(currentLabel) = 0;
@@ -30,7 +30,7 @@ double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
         du -= alpha.col(i).sum() - alpha(currentLabel,i) +
             _gamma/2 * (alpha.col(i).squaredNorm() - alpha(currentLabel,i)*alpha(currentLabel,i));
     }
-    pr = pr/_n+_lambda*normPart.sum();
+    pr = pr/_n+_lambda*normPart;
     du /= _n;
     double gap = pr - du;
     fprintf(stderr,"primal %g\t dual %g\t Gap %g \n",pr,du,gap);
