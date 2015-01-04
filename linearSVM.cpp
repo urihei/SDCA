@@ -15,6 +15,14 @@ linearSVM::linearSVM(ivec &y,matd &data,size_t k,
         _squaredNormData(i) = _data.col(i).squaredNorm();
     }
 }
+double linearSVM::learn_SDCA(){
+    mat alpha(_k,_n);
+    alpha.setZero();
+    mat zW(_p,_k);
+    zW.setZero();
+    return learn_SDCA(alpha, zW,_eps);
+}
+
 double linearSVM::learn_SDCA(mat &alpha, mat &zW){
     return learn_SDCA(alpha, zW,_eps);
 }
@@ -71,7 +79,7 @@ double linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
         
         _W += lambdaN * _data.col(i)*alpha.col(i).transpose(); 
 
-        if( t % (_n* _chackGap) == 0){
+        if( t % (_n* _checkGap) == 0){
             gap = getGap(alpha,zW);
             
         }
@@ -113,7 +121,7 @@ void linearSVM::learn_acc_SDCA(){
     
     for(unsigned int t =1; t<=_accIter; ++t){
         epsilon_t = learn_SDCA(alpha, zW,eta/OnePetaSquare * xi);
-	if(t%_chackGap ==0){
+	if(t%_checkGapAcc ==0){
 	  cerr<<"ACC iter: "<<t<<" gap: ";
 	  gap = (1+rho/mu)*epsilon_t + 
 	    (rho*kappa)/(2*mu)*(_W-zW).squaredNorm();
@@ -152,7 +160,8 @@ double linearSVM::getGap(mat &alpha, mat &zW){
     pr = pr/_n + _lambda * (_W.array() * (_W.array() - zW.array())).sum();
     du /= _n;
     double gap = pr - du;
-    cerr<< "primal:  "<<pr<<"\t dual"<<du<<"\t Gap: "<<gap<<endl;
+    if(_verbose)
+        cerr<< "primal: "<<pr<<"\t dual: "<<du<<"\t Gap: "<<gap<<endl;
     return gap;
 }
 double linearSVM::getGap(){

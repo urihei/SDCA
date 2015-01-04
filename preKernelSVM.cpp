@@ -9,9 +9,7 @@ preKernelSVM::preKernelSVM(ivec &y,matd &kernel, size_t k,
     _y = y;
     _alpha.resize(_k,_n);
 }
-double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
-  return learn_SDCA(alpha,zALPHA,_eps);
-}
+
 double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     double lambdaN = 1/(_n*_lambda);
     
@@ -62,7 +60,7 @@ double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
         // END optimizeDual_SDCA
         //alpha.col(i) = -a;
         //alpha(_y[i],i) = a.matrix().lpNorm<1>();
-        if( t % (_n* _chackGap) == 0){
+        if( t % (_n* _checkGap) == 0){
             gap = getGap(alpha,zALPHA);
             
         }
@@ -81,7 +79,7 @@ double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
 }
 
 
-void preKernelSVM::classify(matd data, ivec &res){
+void preKernelSVM::classify(matd &data, ivec &res){
     MatrixXd mData;
     fillMatrix(data,mData);
     size_t n = mData.cols();

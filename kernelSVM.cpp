@@ -13,9 +13,6 @@ kernelSVM::kernelSVM(ivec &y, size_t k,Kernel* ker,
         _squaredNormData(i) = _ker->squaredNorm(i);
     }
 }
-double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
-    return learn_SDCA(alpha,zALPHA,_eps);
-}
 double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
     double lambdaN = 1/(_n*_lambda);
     
@@ -57,7 +54,7 @@ double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
         //note alpha is changing here
         optimizeDual_SDCA(mu,C,alpha,i,curLabel);
         
-        if( t % (_n* _chackGap) == 0){
+        if( t % (_n* _checkGap) == 0){
             gap = getGap(alpha,zALPHA);
             
         }

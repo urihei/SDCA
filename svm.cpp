@@ -6,7 +6,9 @@ svm::svm(size_t k,double lambda, double gamma,unsigned int iter, unsigned int ac
     _OneToK.setOnes();
     cumsum(_OneToK.data(),_k,_OneToK.data());
     _eps = 1e-3;
-    _chackGap = 5;
+    _checkGap = 5;
+    _checkGapAcc = 5;
+    _verbose = false;
 }
 
 void svm::setIter(unsigned int iter){
@@ -16,7 +18,10 @@ void svm::setAccIter(unsigned int iter){
     _accIter = iter;
 }
 void svm::setCheckGap(unsigned int checkGap){
-    _chackGap = checkGap;
+    _checkGap = checkGap;
+}
+void svm::setCheckGapAcc(unsigned int check){
+    _checkGapAcc = check;
 }
 void svm::setLambda(double lambda){
     _lambda = lambda;
@@ -27,6 +32,9 @@ void svm::setGamma(double gamma){
 void svm::setEpsilon(double epsilon){
     _eps = epsilon;
 }
+void svm::setVerbose(bool ver){
+    _verbose = ver;
+}
 
 unsigned int svm::getIter(){
     return _iter;
@@ -35,7 +43,10 @@ unsigned int svm::getAccIter(){
     return _accIter;
 }
 unsigned int svm::getCheckGap(){
-    return _chackGap;
+    return _checkGap;
+}
+unsigned int svm::getCheckGapAcc(){
+    return _checkGapAcc;
 }
 double svm::getLambda(){
     return _lambda;
@@ -46,6 +57,10 @@ double svm::getGamma(){
 double svm::getEpsilon(){
     return _eps;
 }
+bool svm::getVerbose(){
+    return _verbose;
+}
+
 void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
     //void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
     ArrayXd muh(_k);

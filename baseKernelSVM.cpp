@@ -35,14 +35,25 @@ double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
     pr = pr/_n+_lambda*normPart;
     du /= _n;
     double gap = pr - du;
-    fprintf(stderr,"primal %g\t dual %g\t Gap %g \n",pr,du,gap);
-    //    cerr<< "primal:  "<<pr<<"\t dual"<<du<<"\t Gap: "<<gap<<endl;
+    if(_verbose)
+        fprintf(stderr,"primal %g\t dual %g\t Gap %g \n",pr,du,gap);
     return gap;
 }
 double baseKernelSVM::getGap(){
     mat zAlpha(_k,_n);
     zAlpha.setZero();
     return getGap(_alpha,zAlpha);
+}
+
+double baseKernelSVM::learn_SDCA(){
+    mat zALPHA(_k,_n);
+    zALPHA.setZero();
+    mat alpha(_k,_n);
+    alpha.setZero();
+    return learn_SDCA(alpha,zALPHA,_eps);
+}
+double baseKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
+    return learn_SDCA(alpha,zALPHA,_eps);
 }
 
 
@@ -74,8 +85,9 @@ void baseKernelSVM::learn_acc_SDCA(){
         zALPHA_t = zALPHA;
         zALPHA = (1+beta)*(zALPHA + alpha) - beta * ALPHA_t;
         ALPHA_t = zALPHA_t+alpha;
-        if(t%_chackGap ==0){
-            cerr<<"ACC iter: "<<t<<" gap: ";
+        if(t%_checkGapAcc ==0){
+            if(_verbose)
+                cerr<<"ACC iter: "<<t<<" gap: ";
             _alpha = ALPHA_t;
 	    double diff = 0;
 	    // sum(diag(alpha * K * alpha'))
