@@ -13,8 +13,8 @@ public:
     virtual double learn_SDCA(mat &alpha, mat &zAlpha,double eps);
     
     virtual void classify(matd &data,ivec &res);
-
-
+    using svm::saveModel;
+    virtual void saveModel(string fileName);
     virtual void getCol(size_t i,VectorXd & kerCol);
     
 protected:

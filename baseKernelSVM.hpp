@@ -16,8 +16,10 @@ public:
     virtual void learn_acc_SDCA();
     virtual void classify(matd &data,ivec &res)=0;
     virtual double getGap() ;
-    virtual void saveModel(string fileName);
+    virtual void saveModel(string fileName)=0;
 
+    virtual void setParameter(matd &par);
+    
     virtual void getCol(size_t i,VectorXd &kerCol)=0;
     
 protected:

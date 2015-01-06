@@ -38,4 +38,9 @@ void polyKernel::setC(double c){
 double polyKernel::getC(){
     return _c;
 }
-
+string polyKernel::getName(){
+    char buffer[50];
+    sprintf(buffer,"Poly\t%20g\t%20g",_degree,_c);
+    string st(buffer);
+    return "Poly";
+}

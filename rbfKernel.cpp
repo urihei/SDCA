@@ -37,3 +37,9 @@ void rbfKernel::setSigma(double sigma){
 double rbfKernel::getSigma(){
   return _sigma;
 }
+string rbfKernel::getName(){
+    char buffer[30];
+    sprintf(buffer,"RBF\t%16g",_sigma);
+    string st(buffer);
+    return st;
+}

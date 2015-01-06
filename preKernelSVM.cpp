@@ -72,7 +72,6 @@ double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     }
     _kernel += squaredNormData.asDiagonal();
     //    cerr<<alpha<<endl;
-    _alpha = alpha;
     
     delete prm;
     return gap;
@@ -91,6 +90,9 @@ void preKernelSVM::classify(matd &data, ivec &res){
         res[i] = (size_t) index;
     }
   
+}
+void preKernelSVM::saveModel(string fileName){
+    saveModel(fileName,"preCalcKernel",_alpha);
 }
 
 void preKernelSVM::getCol(size_t i,VectorXd & kerCol){

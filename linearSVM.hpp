@@ -17,8 +17,9 @@ public:
     virtual void learn_acc_SDCA();
     virtual double getGap();
     virtual void classify(matd &data,ivec &res);
+    using svm::saveModel;
     virtual void saveModel(string fileName);
-    
+    virtual void setParameter(matd &par);
 protected:
     double getGap(mat &alpha, mat &zW);
     size_t _n;

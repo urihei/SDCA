@@ -5,6 +5,7 @@
 
 #include <string>
 #include <iostream>
+#include <stdio.h>
 
 class svm{
 public:
@@ -17,6 +18,9 @@ public:
     virtual double getGap()=0;
     virtual void classify(matd &data,ivec &res)=0;
     virtual void saveModel(string fileName)=0;
+    virtual void saveModel(string fileName, string kernel,mat &model);
+
+    virtual void setParameter(matd &par) = 0;
 
     virtual void setIter(unsigned int iter);
     virtual void setAccIter(unsigned int iter);

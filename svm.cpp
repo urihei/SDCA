@@ -10,7 +10,7 @@ svm::svm(size_t k,double lambda, double gamma,unsigned int iter, unsigned int ac
     _checkGapAcc = 5;
     _verbose = false;
 }
-
+svm::~svm(){};
 void svm::setIter(unsigned int iter){
     _iter = iter;
 }
@@ -136,4 +136,15 @@ void svm::project_SDCA(ArrayXd &mu,ArrayXd &b){
     }
     b = mu+ (1-mub(ind))/(ind+1);
     b = b.max(0);
+}
+void svm::saveModel(string fileName, string kernel,mat &model){
+    FILE* pFile = fopen(fileName.c_str(),"w");
+    fprintf(pFile,"%s\t%g\t%g\n",kernel.c_str(),_lambda,_gamma);
+    for(int i=0;i<model.rows();++i){
+        for(int j=0; j<model.cols();++j){
+            fprintf(pFile,"%g ",model(i,j));
+        }
+        fprintf(pFile,"\n");
+    }
+    fclose(pFile);
 }

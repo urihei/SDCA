@@ -12,7 +12,7 @@ public:
   virtual void dot(size_t i,VectorXd &res);
   virtual void dot(vec &v,VectorXd &res);
   virtual size_t getN();
-
+    virtual string getName();
 protected:
     size_t _p;
     size_t _n;

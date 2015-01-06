@@ -12,6 +12,7 @@ public:
     virtual void dot(size_t i,VectorXd &res);
     virtual void dot(vec &v,VectorXd &res);
     virtual size_t getN();
+    virtual string getName();
     virtual void setDegree(double sigma);
     virtual double getDegree();
     virtual void setC(double c);

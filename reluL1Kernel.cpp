@@ -35,3 +35,7 @@ void reluL1Kernel::dot(vec &v,VectorXd &res){
 size_t reluL1Kernel::getN(){
   return _data.cols();
 }
+
+string reluL1Kernel::getName(){
+    return "ReluL1";
+}

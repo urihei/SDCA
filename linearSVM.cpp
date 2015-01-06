@@ -130,7 +130,7 @@ void linearSVM::learn_acc_SDCA(){
         if(gap < _eps)
 	  break;
         zW = (1+beta)*_W - beta * W_t;
-        W_t = _W;
+        W_t = _W*1;
         xi = xi * (1-eta);
     }
 }
@@ -185,5 +185,8 @@ void linearSVM::classify(matd &data,ivec &res){
     }
 }
 void linearSVM::saveModel(string fileName){
+    saveModel(fileName,"Linear",_W);
 }
-
+void linearSVM::setParameter(matd &par){
+    fillMatrix(par,_W);
+}

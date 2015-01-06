@@ -51,6 +51,8 @@ size_t findFirst(double* a,size_t len){
 
 void fillMatrix(matd &data1, mat &data2){
   size_t n = data1.size();
+  if(n == 0)
+      return;
   size_t p =  data1[0].size();
     
   data2.resize(n,p);

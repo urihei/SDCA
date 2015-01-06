@@ -34,3 +34,6 @@ void zeroOneL1Kernel::dot(vec &v,VectorXd &res){
 size_t zeroOneL1Kernel::getN(){
   return _data.cols();
 }
+string zeroOneL1Kernel::getName(){
+    return "ZeroOneL1";
+}

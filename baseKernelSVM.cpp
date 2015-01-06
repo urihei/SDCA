@@ -1,4 +1,6 @@
 #include "baseKernelSVM.hpp"
+#include "usedFun.hpp"
+
 baseKernelSVM::baseKernelSVM(size_t k, double lambda, double gamma , unsigned int iter, unsigned int accIter):svm(k,lambda,gamma,iter,accIter){}
 
 double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
@@ -48,9 +50,7 @@ double baseKernelSVM::getGap(){
 double baseKernelSVM::learn_SDCA(){
     mat zALPHA(_k,_n);
     zALPHA.setZero();
-    mat alpha(_k,_n);
-    alpha.setZero();
-    return learn_SDCA(alpha,zALPHA,_eps);
+    return learn_SDCA(_alpha,zALPHA,_eps);
 }
 double baseKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
     return learn_SDCA(alpha,zALPHA,_eps);
@@ -68,8 +68,6 @@ void baseKernelSVM::learn_acc_SDCA(){
     alpha.setZero();
     mat zALPHA(_k,_n);
     zALPHA.setZero();
-    mat ALPHA_t(_k,_n);
-    ALPHA_t.setZero();
     MatrixXd zALPHA_t(_k,_n);
 
     double gap = _eps + 1.0;
@@ -80,15 +78,15 @@ void baseKernelSVM::learn_acc_SDCA(){
     double xi = OnePetaSquare * (1-_gamma/(2*(_k-1)));
     eta = eta /2;
 
+    
     for(unsigned int t =1;t<=_accIter;++t){
         epsilon_t = learn_SDCA(alpha,zALPHA,eta/OnePetaSquare * xi);
         zALPHA_t = zALPHA;
-        zALPHA = (1+beta)*(zALPHA + alpha) - beta * ALPHA_t;
-        ALPHA_t = zALPHA_t+alpha;
+        zALPHA = (1+beta)*(zALPHA + alpha) - beta * _alpha;
+        _alpha = zALPHA_t+alpha;
         if(t%_checkGapAcc ==0){
             if(_verbose)
                 cerr<<"ACC iter: "<<t<<" gap: ";
-            _alpha = ALPHA_t;
 	    double diff = 0;
 	    // sum(diag(alpha * K * alpha'))
 	    for(size_t n=0;n<_n;++n){
@@ -104,7 +102,8 @@ void baseKernelSVM::learn_acc_SDCA(){
             break;
         xi = xi * (1-eta);
     }
-    _alpha = ALPHA_t;
 }
 
-void baseKernelSVM::saveModel(string fileName){}
+void baseKernelSVM::setParameter(matd &par){
+    fillMatrix(par,_alpha);
+}

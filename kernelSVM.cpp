@@ -4,7 +4,7 @@
 kernelSVM::kernelSVM(ivec &y, size_t k,Kernel* ker,
 		     double lambda, double gamma,
 		     unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
-    _y = y;
+    _y = y;//reassign;
     _ker = ker;
     _n = _ker->getN();
     _alpha.resize(_k,_n);
@@ -64,9 +64,6 @@ double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
         
         ind++;
     }
-    //    cerr<<alpha<<endl;
-    _alpha = alpha;
-    
     delete prm;
     return gap;
 }
@@ -85,6 +82,9 @@ void kernelSVM::classify(matd &data, ivec &res){
         res[i] = (size_t) index;
     }
     
+}
+void kernelSVM::saveModel(string fileName){
+    saveModel(fileName,_ker->getName(),_alpha);
 }
 void kernelSVM::getCol(size_t i,VectorXd & kerCol){
     _ker->dot(i,kerCol);

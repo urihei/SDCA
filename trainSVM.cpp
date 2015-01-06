@@ -20,7 +20,7 @@
 #include "reluL1Kernel.hpp"
 //#include "linearKernel.hpp"
 
-enum KernelType{Linear=1,RBF=2,Poly=3,ZeroOneL1=4,ReluL1=5};
+
 
 
 int ReadData(string fileName,matd& data,ivec & label);
@@ -178,7 +178,7 @@ int main(int argc,char ** argv){
     sv->setCheckGapAcc(checkGapAcc);
     sv->setEpsilon(epsilon);
 
-    //    cerr<<"before learning"<<ker<<endl;
+
 
     
     if(acc_iter >0){
@@ -186,7 +186,7 @@ int main(int argc,char ** argv){
     }else{
         sv->learn_SDCA();
     }
-    cerr<<"Im here -1"<<endl;
+
 
     if(model_file != ""){
         sv->saveModel(model_file);
@@ -209,7 +209,7 @@ int main(int argc,char ** argv){
     if(ker != NULL)
         delete ker;
 
-    //    delete sv;
+    delete sv;
 }
 int ReadData(string fileName,matd& data,ivec & label){
     string line;
