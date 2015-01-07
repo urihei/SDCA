@@ -120,7 +120,7 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv){
     istringstream iss(line);
     
     iss >> kernel_type;
-    
+    cerr<<"Kernel type: "<<kernel_type<<endl;
     if(kernel_type == "Linear"){
         iss >> lambda;
         iss >> gamma;
@@ -134,7 +134,8 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv){
             sv = new preKernelSVM(y_t,data_t,parMat.size(),lambda,gamma);
         }else{
             if(argc <4){
-                cerr<<"The model is a kernel and need the train file data as the third argument"<<endl; 
+                cerr<<"The model is a kernel and need the train file data as the third argument"<<endl;
+		exit(0);
             }
             string train_fileName(argv[3]);
             size_t k = ReadTrainData(train_fileName,data_t,y_t);
@@ -164,6 +165,7 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv){
             sv = new kernelSVM(y_t,k,ker,lambda,gamma);
         }
     }
+    cerr<<"Finish bulding the model"<<endl;
     sv->setParameter(parMat);
     myfile.close();
     return sv;
@@ -178,17 +180,19 @@ int main(int argc,char ** argv){
     matd testData;
     ReadData(test_file,testData);
     Kernel* ker= NULL;
-    svm* sv =   ReadModel(test_file,ker,argc,argv);
+    svm* sv =   ReadModel(model_file,ker,argc,argv);
 
 
     
     size_t test_size = testData.size();
     ivec y_res(test_size);
+    cerr<<"start classify"<<endl;
     sv->classify(testData,y_res);
+    cerr<<"Printing result"<<endl;
     for(size_t i=0;i<test_size;++i){
         cout<<y_res[i]<<" ";
     }
-
+    cout<<endl;
     if(ker != NULL)
         delete ker;
 

@@ -174,10 +174,12 @@ double linearSVM::getGap(){
 void linearSVM::classify(matd &data,ivec &res){
     MatrixXd mData;
     fillMatrix(data,mData);
+    cerr<<"Data rows: "<<mData.rows()<<" cols: "<<mData.cols()<<endl;
     mData.transposeInPlace();
     size_t n = mData.cols();
     MatrixXd ya(_k,n);
-    ya = _W.transpose()*_data;
+    cerr<<"W p: "<<_W.rows() <<"W k"<<_k<<endl;
+    ya = _W.transpose()* mData;
     MatrixXf::Index index;
     for(size_t i=0;i<n;i++){
         ya.col(i).maxCoeff(&index);
