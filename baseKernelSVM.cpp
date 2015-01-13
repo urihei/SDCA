@@ -59,7 +59,7 @@ double baseKernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd
 
 
 void baseKernelSVM::learn_acc_SDCA(){
-    double kappa = 100*_lambda;
+    double kappa = 10/_n;//100*_lambda;
     double mu = _lambda/2;
     double rho = mu+kappa;
     double eta = sqrt(mu/rho);

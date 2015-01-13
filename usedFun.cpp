@@ -62,3 +62,12 @@ void fillMatrix(matd &data1, mat &data2){
     }
   }
 }
+int multinomial(unsigned int N,vector<unsigned int> &v){
+    l = v.size();
+    sort(v.begin,v.end());
+    vector<unsigned int> tmp(l-1);
+    unsigned int k
+    for(size_t d=0;d<l;++d){
+        l(d) = 
+    }
+}

@@ -85,8 +85,17 @@ int main(int argc,char ** argv){
     size_t k =  ReadData(fileName,data_t,y_t);
     size_t n = y_t.size();
     double lambda = 10/(n+0.0);
-    //polyKernel* ker = new polyKernel(data_t,2,1);
+    //    polyKernel* ker = new polyKernel(data_t,2,1);
     reluL1Kernel* ker = new reluL1Kernel(data_t);
+    VectorXd vec(n);
+    for(size_t i=0; i<n; ++i){
+        ker->dot(i,vec);
+        for(size_t j=0; j<n; ++j){
+                cout<<vec(j)<<" ";
+            }
+            cout<<endl;
+    }
+    exit(0);
     //zeroOneL1Kernel* ker = new zeroOneL1Kernel(data_t);
     //linearKernel* ker = new linearKernel(data_t);
     preKernelSVM svm(y_t,ker,k,lambda,0.1,100*n);

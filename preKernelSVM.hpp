@@ -25,7 +25,7 @@ protected:
 
     mat _kernel;
     Kernel* _kerFun;
-
+    mat _squaredNormData;
     
 };
 #endif

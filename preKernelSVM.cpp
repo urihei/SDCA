@@ -13,12 +13,13 @@ preKernelSVM::preKernelSVM(ivec &y,matd &kernel, size_t k,
     for(size_t i=0;i<_n;++i){
         _prmArray[i] = i;
     }
+    _squaredNormData = _kernel.diagonal();
+    _kernel.diagonal().setZero();
     _kerFun = NULL;
 }
 preKernelSVM::preKernelSVM(ivec &y,Kernel* kernel, size_t k,
           double lambda, double gamma,
           unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
-    _kerFun = kernel;
     _n = kernel->getN();
     _usedN = _n;
     _y = y;
@@ -31,6 +32,9 @@ preKernelSVM::preKernelSVM(ivec &y,Kernel* kernel, size_t k,
         kernel->dot(i,_kernel.col(i));
         _prmArray[i] = i;
     }
+    _squaredNormData = _kernel.diagonal();
+    _kernel.diagonal().setZero();
+    _kerFun = kernel;
 }
 double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &zALPHA, double eps){
     double lambdaN = 1/(_n*_lambda);
@@ -48,15 +52,12 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
     ArrayXd mu(_k);
     //    ArrayXd a(_k);
 
-    
-    VectorXd squaredNormData(_n);
-    squaredNormData = _kernel.diagonal();
 
     mat zALPHAtimeK(_k,_n);
     
-    zALPHAtimeK = zALPHA *_kernel;
+    zALPHAtimeK = zALPHA *_kernel+zALPHA *_squaredNormData.asDiagonal();
     
-    _kernel.diagonal().setZero();
+    
 
     double gap = eps + 1;
     
@@ -74,8 +75,8 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
 
         p(curLabel) = 0;
 
-        mu = p/(_gamma+(squaredNormData(i)*lambdaN));
-        C = 1/(1+(gammaLambdan/squaredNormData(i)));
+        mu = p/(_gamma+(_squaredNormData(i)*lambdaN));
+        C = 1/(1+(gammaLambdan/_squaredNormData(i)));
 
         //optimizeDual_SDCA(mu,C,a);
         optimizeDual_SDCA(mu,C,alpha,i,curLabel);
@@ -92,7 +93,7 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
         
         ind++;
     }
-    _kernel += squaredNormData.asDiagonal();
+
     //    cerr<<alpha<<endl;
     
     if(gap >eps){
@@ -103,17 +104,24 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
 
 
 void preKernelSVM::classify(matd &data, ivec &res){
-    MatrixXd mData;
     if(_kerFun == NULL){
+        MatrixXd mData;
         fillMatrix(data,mData);
+        classify(mData,res);
     }else{
         size_t t_n = data.size();
-        mData.resize(t_n,_n);
+        VectorXd kerCol(_n);
+        VectorXd ya(_k);
+        MatrixXf::Index index;
+        cerr<<"Start kernel classify"<<endl;
         for(size_t i=0;i<t_n;++i){
-            _kerFun->dot(data[i],mData.col(i));
+            _kerFun->dot(data[i],kerCol);
+            ya = _alpha * kerCol;
+            ya.maxCoeff(&index);
+            res[i] = (size_t) index;
         }
     }
-    classify(mData,res);
+
 }
 void preKernelSVM::classify( const Ref<const MatrixXd> &mData, ivec &res){
     size_t n = mData.cols();
@@ -136,5 +144,6 @@ void preKernelSVM::saveModel(FILE* pFile){
 
 void preKernelSVM::getCol(size_t i,Ref<VectorXd>kerCol){
     kerCol = _kernel.col(i);
+    kerCol(i) = _squaredNormData(i);
 }
 
