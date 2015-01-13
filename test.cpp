@@ -18,7 +18,7 @@
 #include "polyKernel.hpp"
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
-//#include "linearKernel.hpp"
+#include "linearKernel.hpp"
 
 
 
@@ -61,17 +61,36 @@ int ReadData(string fileName,matd& data,ivec & label){
 
 
 int main(int argc,char ** argv){
+    // ivec prm(10);
+    // ivec preDefine(10);
+    // for(size_t i=0;i<10;++i){
+    //     preDefine[i] = i;
+    // }
+    // randperm(10,prm,preDefine);
+    // for(size_t i=0;i<10;++i){
+    //     cout<<prm[i]<<" ";
+    //     preDefine[i] = prm[i];
+    // }
+    // cout<<endl;
+    // randperm(5,prm,preDefine);
+    // for(size_t i=0;i<10;++i){
+    //     cout<<prm[i]<<" ";
+    //     preDefine[i] = prm[i];
+    // }
+    // cout<<endl;
+    // exit(0);
     string  fileName(argv[1]);
     matd data_t;
     ivec y_t;
     size_t k =  ReadData(fileName,data_t,y_t);
     size_t n = y_t.size();
     double lambda = 10/(n+0.0);
-    //    polyKernel* ker = new polyKernel(data_t,2,1);
-    //reluL1Kernel* ker = new reluL1Kernel(data_t);
-    zeroOneL1Kernel* ker = new zeroOneL1Kernel(data_t);
+    //polyKernel* ker = new polyKernel(data_t,2,1);
+    reluL1Kernel* ker = new reluL1Kernel(data_t);
+    //zeroOneL1Kernel* ker = new zeroOneL1Kernel(data_t);
     //linearKernel* ker = new linearKernel(data_t);
-    kernelSVM svm(y_t,k,ker,lambda,0.0001,100*n);
+    preKernelSVM svm(y_t,ker,k,lambda,0.1,100*n);
+    //kernelSVM svm(y_t,k,ker,lambda,0.0001,100*n);
     //linearSVM svm(y_t,data_t,k,lambda,0.1,100*n);
     mat alpha1(k,n);
     alpha1.setZero();
@@ -97,6 +116,7 @@ int main(int argc,char ** argv){
             count++;
     }
     cout<<"The Number of train error "<<count<<endl;
+    return 0;
     svm.setAccIter(100);
     svm.setIter(5*n);
     start =time(NULL);
@@ -210,7 +230,7 @@ int main(int argc,char ** argv){
     //     cout<<endl;
     // }
     
-        delete ker;
+    //        delete ker;
     return 0;
 }
 

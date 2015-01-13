@@ -15,11 +15,11 @@ _sigma(2*sigma){
 double rbfKernel::squaredNorm(size_t i){
   return 1.0;
 }
-void rbfKernel::dot(size_t i,VectorXd & res){
+void rbfKernel::dot(size_t i,Ref<VectorXd>  res){
   res =  exp((2*(_data.transpose()*_data.col(i)).array() - _dataSquare[i] - _dataSquare).transpose()/_sigma);
 
 }
-void rbfKernel::dot(vec &v,VectorXd &res){
+void rbfKernel::dot(vec &v,Ref<VectorXd> res){
   VectorXd tmp(_p);
   double squareNormData = 0.0;
   for(size_t i=0; i<_p;++i){
@@ -27,6 +27,10 @@ void rbfKernel::dot(vec &v,VectorXd &res){
     squareNormData += v[i]*v[i];
   }
   res = exp((2*(_data.transpose()*tmp).array()-squareNormData-_dataSquare)/_sigma);
+}
+
+void rbfKernel::dot(const Ref<const VectorXd> &v,Ref<VectorXd> res){
+    res = exp((2*(_data.transpose()*v).array()-v.squaredNorm()-_dataSquare)/_sigma);
 }
 size_t rbfKernel::getN(){
   return _data.cols();

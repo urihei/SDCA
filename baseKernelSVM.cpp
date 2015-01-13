@@ -3,7 +3,7 @@
 
 baseKernelSVM::baseKernelSVM(size_t k, double lambda, double gamma , unsigned int iter, unsigned int accIter):svm(k,lambda,gamma,iter,accIter){}
 
-double baseKernelSVM::getGap(mat &alpha,mat &zALPHA){
+double baseKernelSVM::getGap(const Ref <const MatrixXd> &alpha,const Ref <const MatrixXd> &zALPHA){
     double pr = 0.0;
     double du = 0.0;
 
@@ -52,7 +52,8 @@ double baseKernelSVM::learn_SDCA(){
     zALPHA.setZero();
     return learn_SDCA(_alpha,zALPHA,_eps);
 }
-double baseKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA){
+
+double baseKernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd> &zALPHA){
     return learn_SDCA(alpha,zALPHA,_eps);
 }
 

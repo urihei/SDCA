@@ -6,11 +6,33 @@ preKernelSVM::preKernelSVM(ivec &y,matd &kernel, size_t k,
           unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
     fillMatrix(kernel,_kernel);
     _n = _kernel.cols();
+    _usedN = _n;
     _y = y;
     _alpha.resize(_k,_n);
+    _prmArray.resize(_n);
+    for(size_t i=0;i<_n;++i){
+        _prmArray[i] = i;
+    }
+    _kerFun = NULL;
 }
-
-double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
+preKernelSVM::preKernelSVM(ivec &y,Kernel* kernel, size_t k,
+          double lambda, double gamma,
+          unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
+    _kerFun = kernel;
+    _n = kernel->getN();
+    _usedN = _n;
+    _y = y;
+    _alpha.resize(_k,_n);
+    _prmArray.resize(_n);
+    cerr<<"Start create kernel"<<endl;
+    
+    _kernel.resize(_n,_n);
+    for(size_t i=0;i<_n;++i){
+        kernel->dot(i,_kernel.col(i));
+        _prmArray[i] = i;
+    }
+}
+double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &zALPHA, double eps){
     double lambdaN = 1/(_n*_lambda);
     
     double gammaLambdan = _gamma*_n*_lambda;
@@ -19,7 +41,7 @@ double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     double C;
     unsigned int ind = 0;
 
-    unsigned int* prm = new unsigned int[_n];
+    ivec prm(_usedN);
 
 
     ArrayXd p(_k);
@@ -39,8 +61,8 @@ double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     double gap = eps + 1;
     
     for(unsigned int t=1;t<=_iter;++t){
-        if((ind % _n) == 0){
-            randperm(_n,prm);
+        if((ind % _usedN) == 0){
+            randperm(_usedN,prm,_prmArray);
             ind = 0;
         }
         size_t i = prm[ind];
@@ -73,14 +95,27 @@ double preKernelSVM::learn_SDCA(mat &alpha, mat &zALPHA, double eps){
     _kernel += squaredNormData.asDiagonal();
     //    cerr<<alpha<<endl;
     
-    delete prm;
+    if(gap >eps){
+        gap = getGap(alpha,zALPHA);
+    }
     return gap;
 }
 
 
 void preKernelSVM::classify(matd &data, ivec &res){
     MatrixXd mData;
-    fillMatrix(data,mData);
+    if(_kerFun == NULL){
+        fillMatrix(data,mData);
+    }else{
+        size_t t_n = data.size();
+        mData.resize(t_n,_n);
+        for(size_t i=0;i<t_n;++i){
+            _kerFun->dot(data[i],mData.col(i));
+        }
+    }
+    classify(mData,res);
+}
+void preKernelSVM::classify( const Ref<const MatrixXd> &mData, ivec &res){
     size_t n = mData.cols();
     MatrixXd ya(_k,n);
     ya = 1/(_lambda*_n) * (_alpha * mData);
@@ -91,11 +126,15 @@ void preKernelSVM::classify(matd &data, ivec &res){
     }
   
 }
-void preKernelSVM::saveModel(string fileName){
-    saveModel(fileName,"preCalcKernel",_alpha);
+void preKernelSVM::saveModel(FILE* pFile){
+    if(_kerFun == NULL){
+        saveModel(pFile,"preCalcKernel",_alpha);
+    }else{
+        saveModel(pFile,_kerFun->getName(),_alpha);
+    }
 }
 
-void preKernelSVM::getCol(size_t i,VectorXd & kerCol){
+void preKernelSVM::getCol(size_t i,Ref<VectorXd>kerCol){
     kerCol = _kernel.col(i);
 }
 

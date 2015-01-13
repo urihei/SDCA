@@ -1,19 +1,22 @@
 #include "kernelSVM.hpp"
 #include "usedFun.hpp"
 
-kernelSVM::kernelSVM(ivec &y, size_t k,Kernel* ker,
+kernelSVM::kernelSVM(ivec &y,Kernel* ker, size_t k,
 		     double lambda, double gamma,
 		     unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
     _y = y;//reassign;
     _ker = ker;
     _n = _ker->getN();
+    _usedN = _n;
     _alpha.resize(_k,_n);
     _squaredNormData.resize(_n);
+    _prmArray.resize(_n);
     for(size_t i = 0;i<_n;++i){
         _squaredNormData(i) = _ker->squaredNorm(i);
+        _prmArray[i] = i;
     }
 }
-double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
+double kernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd> &zALPHA,double eps){
     double lambdaN = 1/(_n*_lambda);
     
     double gammaLambdan = _gamma*_n*_lambda;
@@ -22,7 +25,7 @@ double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
     double C;
     unsigned int ind = 0;
 
-    unsigned int* prm = new unsigned int[_n];
+    ivec prm(_usedN);
     VectorXd kerCol(_n);
     
     
@@ -31,8 +34,8 @@ double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
     
     double gap = eps + 1;
     for(unsigned int t=1;t <= _iter;++t){
-        if((ind % _n) == 0){
-            randperm(_n,prm);
+        if((ind % _usedN) == 0){
+            randperm(_usedN,prm,_prmArray);
             ind = 0;
         }
         size_t i = prm[ind];
@@ -64,7 +67,10 @@ double kernelSVM::learn_SDCA(mat &alpha, mat &zALPHA,double eps){
         
         ind++;
     }
-    delete prm;
+
+    if(gap >eps){
+        gap = getGap(alpha,zALPHA);
+    }
     return gap;
 }
 
@@ -74,7 +80,7 @@ void kernelSVM::classify(matd &data, ivec &res){
     VectorXd ya(_k);
     VectorXd kerCol(_n);
     MatrixXf::Index index;
-    
+    cerr<<"Start kernel classify"<<endl;
     for(size_t i=0;i<n;++i){
         _ker->dot(data[i],kerCol);
         ya = _alpha * kerCol;
@@ -83,9 +89,22 @@ void kernelSVM::classify(matd &data, ivec &res){
     }
     
 }
-void kernelSVM::saveModel(string fileName){
-    saveModel(fileName,_ker->getName(),_alpha);
+void kernelSVM::classify(const Ref <const MatrixXd> &data,ivec &res){
+    size_t n = data.cols();
+    VectorXd ya(_k);
+    VectorXd kerCol(_n);
+    MatrixXf::Index index;
+    
+    for(size_t i=0;i<n;++i){
+        _ker->dot(data.col(i),kerCol);
+        ya = _alpha * kerCol;
+        ya.maxCoeff(&index);
+        res[i] = (size_t) index;
+    }
 }
-void kernelSVM::getCol(size_t i,VectorXd & kerCol){
+void kernelSVM::saveModel(FILE* pFile){
+    saveModel(pFile,_ker->getName(),_alpha);
+}
+void kernelSVM::getCol(size_t i,Ref <VectorXd>  kerCol){
     _ker->dot(i,kerCol);
 }

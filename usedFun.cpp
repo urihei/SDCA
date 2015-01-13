@@ -6,12 +6,12 @@ int roll(unsigned int d){
   return  dist(gen);
 }
     
-void randperm(unsigned int n,unsigned int* arr){
-  arr[0] = 0;
+void randperm(unsigned int n,ivec &arr, ivec &prePrm){
+  arr[0] = prePrm[0];
   for(size_t i =1; i<n;i++){
     unsigned int d = roll(i);
     arr[i] = arr[d];
-    arr[d] = i;
+    arr[d] = prePrm[i];
   }
 }
 void cumsum(double* a, size_t len,double* b){

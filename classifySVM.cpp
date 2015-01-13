@@ -94,7 +94,7 @@ int ReadTrainData(string fileName,matd& data,ivec & label){
     myfile.close();
     return countLabel;
 }
-svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv){
+svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv,vector<int> &label_map){
     svm* sv;
     ifstream myfile;
     myfile.open(modelFile.c_str(),ifstream::in);
@@ -117,8 +117,24 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv){
     matd parMat;
     matd data_t;
     getline(myfile,line);
+    istringstream iss_map(line);
+    //cerr<<"Reading label map"<<endl;
+    int tmp;
+    int indx = -1;
+    while(iss_map){
+        iss_map >> tmp;
+        //if(tmp){
+            if(indx == -1){
+                indx = tmp;
+            }else{
+                label_map.push_back(tmp);
+                indx = -1;
+            }
+            //}
+    }
+    //    cerr<<"Reading kernel parameters"<<endl;
+    getline(myfile,line);
     istringstream iss(line);
-    
     iss >> kernel_type;
     cerr<<"Kernel type: "<<kernel_type<<endl;
     if(kernel_type == "Linear"){
@@ -162,7 +178,7 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv){
             iss >> gamma;
             readMatrix(myfile,parMat);
 
-            sv = new kernelSVM(y_t,k,ker,lambda,gamma);
+            sv = new kernelSVM(y_t,ker,k,lambda,gamma);
         }
     }
     cerr<<"Finish bulding the model"<<endl;
@@ -180,19 +196,23 @@ int main(int argc,char ** argv){
     matd testData;
     ReadData(test_file,testData);
     Kernel* ker= NULL;
-    svm* sv =   ReadModel(model_file,ker,argc,argv);
+    vector<int> label_map;
+    cerr<<"Reading model file"<<endl; 
+    svm* sv =   ReadModel(model_file,ker,argc,argv,label_map);
 
 
     
     size_t test_size = testData.size();
-    ivec y_res(test_size);
-    cerr<<"start classify"<<endl;
-    sv->classify(testData,y_res);
-    cerr<<"Printing result"<<endl;
-    for(size_t i=0;i<test_size;++i){
-        cout<<y_res[i]<<" ";
+    if(test_size >0 ){
+        ivec y_res(test_size);
+        cerr<<"start classify"<<endl;
+        sv->classify(testData,y_res);
+        cerr<<"Printing result"<<endl;
+        for(size_t i=0;i<test_size;++i){
+            cout<<label_map[y_res[i]]<<" ";
+        }
+        cout<<endl;
     }
-    cout<<endl;
     if(ker != NULL)
         delete ker;
 

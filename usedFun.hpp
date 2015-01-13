@@ -7,7 +7,7 @@
 #include <boost/random/discrete_distribution.hpp>
 
 int roll(unsigned int d);
-void randperm(unsigned int n,unsigned int* arr);
+void randperm(unsigned int n,ivec &arr,ivec &prePrm);
 void cumsum(double* a, size_t len,double* b);
 size_t findFirstBetween(double* a,double* bigger, size_t len);
 size_t findFirst(double* a,size_t len);

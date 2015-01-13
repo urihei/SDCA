@@ -8,7 +8,7 @@ svm::svm(size_t k,double lambda, double gamma,unsigned int iter, unsigned int ac
     _eps = 1e-3;
     _checkGap = 5;
     _checkGapAcc = 5;
-    _verbose = false;
+    _verbose = true;
 }
 svm::~svm(){};
 void svm::setIter(unsigned int iter){
@@ -36,6 +36,18 @@ void svm::setVerbose(bool ver){
     _verbose = ver;
 }
 
+void svm::setUsedN(size_t n){
+    _usedN = n;
+}
+
+void svm::samplePrm(){
+    randperm(_n,_prmArray,_prmArray);
+}
+
+void svm::shiftPrm(size_t n){
+    std::rotate(_prmArray.begin(),_prmArray.begin()+n,_prmArray.end());
+}
+
 unsigned int svm::getIter(){
     return _iter;
 }
@@ -61,7 +73,7 @@ bool svm::getVerbose(){
     return _verbose;
 }
 
-void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
+void svm::optimizeDual_SDCA(const Ref<const ArrayXd> &mu,double C,Ref<MatrixXd> a,size_t i,size_t yi){
     //void svm::optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a){
     ArrayXd muh(_k);
     ArrayXd mub(_k);
@@ -114,7 +126,7 @@ void svm::optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t yi){
         a(yi,i) = normOne(indF);
     }
 }
-void svm::project_SDCA(ArrayXd &mu,ArrayXd &b){
+void svm::project_SDCA(const Ref<const ArrayXd> &mu,Ref<ArrayXd> b){
     ArrayXd muh(_k);
     ArrayXd mub(_k);
     ArrayXd z(_k);   
@@ -137,8 +149,8 @@ void svm::project_SDCA(ArrayXd &mu,ArrayXd &b){
     b = mu+ (1-mub(ind))/(ind+1);
     b = b.max(0);
 }
-void svm::saveModel(string fileName, string kernel,mat &model){
-    FILE* pFile = fopen(fileName.c_str(),"w");
+void svm::saveModel(FILE* pFile, string kernel,mat &model){
+    
     fprintf(pFile,"%s\t%g\t%g\n",kernel.c_str(),_lambda,_gamma);
     for(int i=0;i<model.rows();++i){
         for(int j=0; j<model.cols();++j){
@@ -146,5 +158,5 @@ void svm::saveModel(string fileName, string kernel,mat &model){
         }
         fprintf(pFile,"\n");
     }
-    fclose(pFile);
+    
 }

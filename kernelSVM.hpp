@@ -8,17 +8,18 @@
 
 class kernelSVM: public baseKernelSVM{
 public:
-    kernelSVM(ivec &y,size_t k,Kernel* ker,
+    kernelSVM(ivec &y,Kernel* ker,size_t k,
               double lambda=1, double gamma=1,
               unsigned int iter=50,unsigned int accIter=0);
     using baseKernelSVM::learn_SDCA;
-    virtual double learn_SDCA(mat &alpha, mat &zAlpha,double eps);
+    virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref <const MatrixXd> &zAlpha,double eps);
     
     virtual void classify(matd &data,ivec &res);
-        using svm::saveModel;
-    virtual void saveModel(string fileName);
+    virtual void classify(const Ref <const MatrixXd> &data,ivec &res);
+    using svm::saveModel;
+    virtual void saveModel(FILE* pFile);
     
-    virtual void getCol(size_t i,VectorXd &kerCol);
+    virtual void getCol(size_t i,Ref<VectorXd> kerCol);
     
 protected:
     Kernel* _ker;

@@ -7,40 +7,44 @@ linearSVM::linearSVM(ivec &y,matd &data,size_t k,
     fillMatrix(data,_data);
     _data.transposeInPlace();
     _n = _data.cols();
+    _usedN = _n;
     _p = _data.rows();
     _y = y;
     _W.resize(_p,_k);
     _squaredNormData.resize(_n);
+    _prmArray.resize(_n);
     for(size_t i = 0;i<_n;++i){
         _squaredNormData(i) = _data.col(i).squaredNorm();
+        _prmArray[i] = i;
     }
 }
 double linearSVM::learn_SDCA(){
-    mat alpha(_k,_n);
+    MatrixXd alpha(_k,_n);
     alpha.setZero();
-    mat zW(_p,_k);
+    MatrixXd zW(_p,_k);
     zW.setZero();
     return learn_SDCA(alpha, zW,_eps);
 }
 
-double linearSVM::learn_SDCA(mat &alpha, mat &zW){
+double linearSVM::learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW){
     return learn_SDCA(alpha, zW,_eps);
 }
-double linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
+double linearSVM::learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW,double eps){
 
 
     double lambdaN = 1/(_n*_lambda);
+
     double gammaLambdan = _gamma*_n*_lambda;
 
 
-    unsigned int* prm = new unsigned int[_n];
+    ivec prm(_usedN);
   
 
     unsigned int ind = 0;
 
     ArrayXd p(_k);
     ArrayXd mu(_k);
-    ArrayXd a(_k);
+    //ArrayXd a(_k);
     double C;
   
   
@@ -49,8 +53,8 @@ double linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
     double gap = eps + 1;
     
     for(unsigned int t=1;t<=_iter;++t){
-        if((ind % _n) == 0){
-            randperm(_n,prm);
+        if((ind % _usedN) == 0){
+            randperm(_usedN,prm,_prmArray);
             ind = 0;
         }
         size_t i = prm[ind];
@@ -79,7 +83,7 @@ double linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
         
         _W += lambdaN * _data.col(i)*alpha.col(i).transpose(); 
 
-        if( t % (_n* _checkGap) == 0){
+        if( t % ( _usedN* _checkGap) == 0){//
             gap = getGap(alpha,zW);
             
         }
@@ -89,7 +93,10 @@ double linearSVM::learn_SDCA(mat &alpha, mat &zW,double eps){
 
         ind++;
     }
-    delete prm;
+    
+    if(gap >eps){
+        gap = getGap(alpha,zW);
+    }
     return gap;
 }
 
@@ -125,7 +132,7 @@ void linearSVM::learn_acc_SDCA(){
 	  cerr<<"ACC iter: "<<t<<" gap: ";
 	  gap = (1+rho/mu)*epsilon_t + 
 	    (rho*kappa)/(2*mu)*(_W-zW).squaredNorm();
-	  cerr<<gap<<"\t";
+	  cerr<<gap<<endl;;
 	}
         if(gap < _eps)
 	  break;
@@ -135,7 +142,7 @@ void linearSVM::learn_acc_SDCA(){
     }
 }
 
-double linearSVM::getGap(mat &alpha, mat &zW){
+double linearSVM::getGap(const Ref<const MatrixXd> &alpha, const Ref<const MatrixXd> &zW){
     double pr = 0.0;
     double du = 0.0;
 
@@ -174,20 +181,24 @@ double linearSVM::getGap(){
 void linearSVM::classify(matd &data,ivec &res){
     MatrixXd mData;
     fillMatrix(data,mData);
-    cerr<<"Data rows: "<<mData.rows()<<" cols: "<<mData.cols()<<endl;
+    //    cerr<<"Data rows: "<<mData.rows()<<" cols: "<<mData.cols()<<endl;
     mData.transposeInPlace();
+    classify(mData,res);
+}
+void linearSVM::classify(const Ref<const MatrixXd> &mData,ivec &res){
     size_t n = mData.cols();
     MatrixXd ya(_k,n);
-    cerr<<"W p: "<<_W.rows() <<"W k"<<_k<<endl;
     ya = _W.transpose()* mData;
     MatrixXf::Index index;
     for(size_t i=0;i<n;i++){
         ya.col(i).maxCoeff(&index);
         res[i] = (size_t) index;
+        // cerr<<ya.col(i)<<endl;
+        // cerr<<res[i]<<endl;
     }
 }
-void linearSVM::saveModel(string fileName){
-    saveModel(fileName,"Linear",_W);
+void linearSVM::saveModel(FILE* pFile){
+    saveModel(pFile,"Linear",_W);
 }
 void linearSVM::setParameter(matd &par){
     fillMatrix(par,_W);

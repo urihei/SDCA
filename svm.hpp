@@ -12,13 +12,16 @@ public:
     svm(size_t k, double lambda=1, double gamma = 1,
         unsigned int iter = 50, unsigned int _accIter = 0);
     virtual ~svm();
-    virtual double learn_SDCA(mat &alpha, mat &zALPHA)=0;
+    virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zALPHA)=0;
     virtual double learn_SDCA()=0;
     virtual void learn_acc_SDCA()=0;
+
     virtual double getGap()=0;
     virtual void classify(matd &data,ivec &res)=0;
-    virtual void saveModel(string fileName)=0;
-    virtual void saveModel(string fileName, string kernel,mat &model);
+    //    virtual void classify(mat &data,ivec &res)=0;
+    
+    virtual void saveModel(FILE* pFile)=0;
+    virtual void saveModel(FILE* pFile, string kernel,mat &model);
 
     virtual void setParameter(matd &par) = 0;
 
@@ -31,6 +34,10 @@ public:
     virtual void setGamma(double lambda);
     virtual void setEpsilon(double epsilon);
     virtual void setVerbose(bool ver);
+    virtual void setUsedN(size_t n);
+
+    virtual void samplePrm();
+    virtual void shiftPrm(size_t n);
     
     virtual unsigned int getIter();
     virtual unsigned int getAccIter();
@@ -43,8 +50,8 @@ public:
     
 protected:
 
-    void optimizeDual_SDCA(ArrayXd &mu,double C,mat &a,size_t i,size_t curLabel);
-    void project_SDCA(ArrayXd &mu,ArrayXd &b);
+    void optimizeDual_SDCA(const Ref<const ArrayXd> &mu,double C,Ref<MatrixXd> a,size_t i,size_t curLabel);
+    void project_SDCA(const Ref<const ArrayXd> &mu,Ref<ArrayXd> b);
     //    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a);
     
     unsigned int _iter; // number of iteration out loop
@@ -61,7 +68,11 @@ protected:
     
     ivec _y;
     size_t _k;
+    size_t _n;
 
+    size_t _usedN;
+    ivec _prmArray;
+    
     ArrayXd _OneToK;
 };
 #endif

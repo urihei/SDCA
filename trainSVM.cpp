@@ -23,7 +23,7 @@
 
 
 
-int ReadData(string fileName,matd& data,ivec & label);
+void ReadData(string fileName,matd& data,ivec & label,vector<int> &label_map);
 
 void printUsage(char* ex){
     cerr<<ex<<"\t input_file"<<endl;
@@ -35,6 +35,7 @@ void printUsage(char* ex){
     cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
     cerr<<"\t"<<"-lambda value[double]"<<"\t default 1"<<" The l2 regulation parameter"<<endl; ;
     cerr<<"\t"<<"-gamma value[double]"<<"\t default 0.1"<<" The hinge loss smoothing parameter "<<endl;
+    //    cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
     cerr<<"\t"<<"-iter value[double]"<<"\t default [100|5]"<<" The maximum number of times the whole data is iterated in each SDCA run(if accelerated is used the defualt is 5)"<<endl;
     cerr<<"\t"<<"-iter_acc value[unsigned int]"<<"\t default [0]"<<" The maximum number of times the acclerated algorithm is repeated"<<endl;
 
@@ -44,15 +45,16 @@ void printUsage(char* ex){
     cerr<<"\t"<<"-epsilon value[double]"<<"\t default [1e-3]"<<" The requested accuracy "<<endl;
     
     cerr<<"\t Kernel Option:"<<endl;
+    cerr<<"\t\t"<<"-preCalc [0|1]"<<"\t default 0"<<" 1 - For calculate the kernel before optimization, 0 - for on the fly calculation."<<endl;  
     cerr<<"\t\t"<<"-sigma value[double]"<<"\t default 1"<<" Sigam for the RBF kernel"<<endl;
     cerr<<"\t\t"<<"-degree value[double]"<<"\t default 2"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
-   cerr<<"\t\t"<<"-c value[double]"<<"\t default 1"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
+    cerr<<"\t\t"<<"-c value[double]"<<"\t default 1"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
    
     exit(1);
 }
 
 int main(int argc,char ** argv){
-    if(argc < 2){
+    if(argc < 2 || argc % 2 != 0){
         printUsage(argv[0]);
     }
     string data_file(argv[1]);
@@ -64,7 +66,8 @@ int main(int argc,char ** argv){
     string kernel_type = "Linear";
     double lambda = 1;
     double gamma = 0.1;
-
+    // bool lambda_find = false;
+    
     double iter = 100;
     size_t acc_iter = 0;
 
@@ -72,7 +75,8 @@ int main(int argc,char ** argv){
     unsigned int checkGapAcc = 5;
 
     double epsilon = 1e-3;
-    
+
+    bool preCalc = false;
     double sigma = 1; //RBF
     double degree = 2;//Poly
     double c = 1; //Poly
@@ -103,6 +107,10 @@ int main(int argc,char ** argv){
             gamma  = atof(argv[i+1]);
             rec = true;
         }
+        // if(strcmp("-lambda_find",argv[i])==0){
+        //     lambda_find = argv[i+1][0] == '1';
+        //     rec = true;
+        // }
         if(strcmp("-iter",argv[i])==0){
             iter  = atof(argv[i+1]);
             rec = true;
@@ -123,6 +131,11 @@ int main(int argc,char ** argv){
             epsilon  = atof(argv[i+1]);
             rec = true;
         }
+        if(strcmp("-preCalc",argv[i])==0){
+            preCalc = argv[i+1][0] == '1';
+            rec = true;
+        }
+        
         if(strcmp("-sigma",argv[i])==0){
             sigma  = atof(argv[i+1]);
             rec = true;
@@ -143,7 +156,10 @@ int main(int argc,char ** argv){
     
     matd data_t;
     ivec y_t;
-    size_t k =  ReadData(data_file,data_t,y_t);
+    vector<int> label_map;
+    ReadData(data_file,data_t,y_t,label_map);
+    size_t k =  label_map.size();
+    cerr<<"Finish reading data"<<endl;
     size_t n = y_t.size();
     Kernel* ker= NULL;
     svm* sv;
@@ -170,7 +186,11 @@ int main(int argc,char ** argv){
                 cerr<<"Unknown kernel: "<<kernel_type<<endl;
                 printUsage(argv[0]);
             }
-            sv = new kernelSVM(y_t,k,ker,lambda,gamma,iter*n,acc_iter);
+            if(preCalc){
+                sv = new preKernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
+            }else{
+                sv = new kernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
+            }
         }
     }
     sv->setVerbose(verbose);
@@ -178,7 +198,29 @@ int main(int argc,char ** argv){
     sv->setCheckGapAcc(checkGapAcc);
     sv->setEpsilon(epsilon);
 
+    cerr<<"Finish creating the svm object"<<endl;
 
+    // if(lambda_find){
+    //     unsigned int folds = 5;
+    //     double lambda_val[] = {1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1,1e2,1e3,1e4,1e5};
+    //     cerr<<"Finding lambda"<<endl;
+    //     size_t train_size = (folds-1.0)/folds * n;
+    //     sv->setUsedN(train_size);
+    //     sv->samplePrm();
+    //     double best_lambda = -1;
+    //     double best_res = -1;
+    //     for(size_t lm=0;lm<11;++lm){
+    //         sv->setLambda(lambda_val[lm]);
+    //         for(size_t i=0;i<folds; ++ i){
+    //             if(acc_iter >0){
+    //                 sv->learn_acc_SDCA();
+    //             }else{
+    //                 sv->learn_SDCA();
+    //             }
+                
+    //         }
+    //     }
+    // }
 
     
     if(acc_iter >0){
@@ -186,24 +228,32 @@ int main(int argc,char ** argv){
     }else{
         sv->learn_SDCA();
     }
-
-
+    
     if(model_file != ""){
-        sv->saveModel(model_file);
+        FILE* pFile = fopen(model_file.c_str(),"w");
+        for(size_t i=0;i<k;++i){
+            fprintf(pFile,"%zu\t%i\t",i,label_map[i]);
+        }
+        fprintf(pFile,"\n");
+        sv->saveModel(pFile);
+        fclose(pFile);
     }
+    
     if(test_file != ""){
         matd testData;
         ivec y_test;
-        ReadData(test_file,testData,y_test);
+        vector<int> test_label_map;
+        ReadData(test_file,testData,y_test,test_label_map);
+        cerr<<"Finsh reading test data"<<endl;
         size_t test_size = y_test.size();
         ivec y_res(test_size);
         sv->classify(testData,y_res);
         unsigned int count = 0;
         for(size_t i=0;i<test_size;++i){
-            if(y_res[i] != y_test[i])
+            if(label_map[y_res[i]] != test_label_map[y_test[i]])
                 count++;
         }
-        cout <<count<<"/"<<test_size<<"\t"<<count/test_size<<endl;
+        cout <<count<<"/"<<test_size<<"\t"<<(count+0.0)/test_size<<endl;
     }
 
     if(ker != NULL)
@@ -211,7 +261,7 @@ int main(int argc,char ** argv){
 
     delete sv;
 }
-int ReadData(string fileName,matd& data,ivec & label){
+void ReadData(string fileName,matd& data,ivec & label,vector<int> & label_map){
     string line;
     ifstream myfile;
     myfile.open(fileName.c_str(),ifstream::in);
@@ -231,6 +281,7 @@ int ReadData(string fileName,matd& data,ivec & label){
                 v.push_back(tmp);
         }
         int cl = (int)(v.back());
+
         map<int,size_t>::iterator lb = lMap.lower_bound(cl);
         if(lb != lMap.end() && !(lMap.key_comp()(cl, lb->first))){
             label.push_back(lb->second);
@@ -244,6 +295,9 @@ int ReadData(string fileName,matd& data,ivec & label){
 
         data.push_back(v);
     }
+    label_map.resize(countLabel);
+    for(map<int,size_t>::iterator it = lMap.begin(); it != lMap.end();++it){
+        label_map[it->second] = it->first;
+    }
     myfile.close();
-    return countLabel;
 }

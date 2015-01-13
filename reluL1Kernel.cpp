@@ -14,12 +14,12 @@ reluL1Kernel::reluL1Kernel(matd &data){
 double reluL1Kernel::squaredNorm(size_t i){
   return _dataNorm(i)*_dataNorm(i);
 }
-void reluL1Kernel::dot(size_t i,VectorXd & res){
+void reluL1Kernel::dot(size_t i,Ref<VectorXd>  res){
   ArrayXd prod = (_data.transpose()*_data.col(i)).array();
   ArrayXd nor = _dataNorm(i) * _dataNorm;
   res =  (M_PI-(prod/(nor)).max(-1).min(1).acos())* prod +(nor.square()-prod.square()).max(0).sqrt() ;
 }
-void reluL1Kernel::dot(vec &v,VectorXd &res){
+void reluL1Kernel::dot(vec &v,Ref<VectorXd> res){
   VectorXd tmp(_p);
   double normVec = 0.0;
   for(size_t i=0; i<_p;++i){
@@ -31,6 +31,11 @@ void reluL1Kernel::dot(vec &v,VectorXd &res){
   ArrayXd nor = normVec * _dataNorm;
   res =  (M_PI-(prod/(nor)).min(1).max(-1).acos())* prod +(nor.square()-prod.square()).max(0).sqrt() ;
 
+}
+void reluL1Kernel::dot(const Ref<const VectorXd> &v,Ref<VectorXd> res){
+    ArrayXd prod = (_data.transpose()*v).array();
+    ArrayXd nor = v.stableNorm() * _dataNorm;
+    res =  (M_PI-(prod/(nor)).min(1).max(-1).acos())* prod +(nor.square()-prod.square()).max(0).sqrt() ;
 }
 size_t reluL1Kernel::getN(){
   return _data.cols();

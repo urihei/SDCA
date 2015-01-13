@@ -11,18 +11,22 @@ double polyKernel::squaredNorm(size_t i){
     return pow(_data.col(i).squaredNorm()+_c,_degree);
 }
 
-void polyKernel::dot(size_t i,VectorXd & res){
+void polyKernel::dot(size_t i,Ref<VectorXd>  res){
     res =  ((_data.transpose()*_data.col(i)).array()+_c).pow(_degree);
 
 }
 
-void polyKernel::dot(vec &v,VectorXd &res){
+void polyKernel::dot(vec &v,Ref<VectorXd>res){
     VectorXd tmp(_p);
     for(size_t i=0; i<_p;++i){
         tmp(i) = v[i];
     }
-    res =     res =  ((_data.transpose()*tmp).array()+_c).pow(_degree);
+    res =  ((_data.transpose()*tmp).array()+_c).pow(_degree);
 }
+void polyKernel::dot(const Ref<const VectorXd> &v,Ref<VectorXd> res){
+    res =  ((_data.transpose()*v).array()+_c).pow(_degree);
+}
+
 size_t polyKernel::getN(){
   return _data.cols();
 }
