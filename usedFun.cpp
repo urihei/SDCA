@@ -62,12 +62,25 @@ void fillMatrix(matd &data1, mat &data2){
     }
   }
 }
-int multinomial(unsigned int N,vector<unsigned int> &v){
-    l = v.size();
-    sort(v.begin,v.end());
-    vector<unsigned int> tmp(l-1);
-    unsigned int k
-    for(size_t d=0;d<l;++d){
-        l(d) = 
+unsigned int prod(unsigned int s, unsigned int e){
+  unsigned int ret = 1;
+  while(s<=e){
+    ret *= s;
+    s++;
+  }
+  return ret;
+}
+/**
+ * Calc multinomial coefficient /2^N
+ **/
+unsigned int multinomial(unsigned int N,vector<unsigned int> &v){
+    size_t l = v.size();
+    std::sort(v.begin(),v.end());
+    unsigned int ret = 1; 
+    unsigned int k = v[0];
+    for(size_t d=1;d<l;++d){
+      ret  *= prod(k+1,k+v[d])/(prod(2,v[d])*pow(2,v[d]));
+      k += v[d];
     }
+    return ret;
 }

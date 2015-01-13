@@ -15,10 +15,12 @@ public:
     virtual size_t getN();
     virtual string getName();
 protected:
-    size_t _p;
-    size_t _n;
-    MatrixXd _data;
-    ArrayXd _dataNorm;
-    unsigned int _hidden;
+  size_t _p;
+  size_t _n;
+  MatrixXd _data;
+  ArrayXd _dataNorm;
+  unsigned int _hidden;
+  double _norm;
+  vector<vector<vector<double>>> _preCalc;
 };
 #endif
