@@ -18,6 +18,7 @@
 #include "polyKernel.hpp"
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
+#include "zeroOneL2Kernel.hpp"
 //#include "linearKernel.hpp"
 
 
@@ -32,7 +33,7 @@ void printUsage(char* ex){
     cerr<<"\t"<<"-m model_file"<<" default no saving"<<" The file name the model will be saved to  if not given the model is not saved"<<endl;
     cerr<< "\t"<<"-test test_data"<<"default no testing" <<" A file name of the data to test the classifier on " <<endl;
     cerr<<"\t"<<"-verbose [0|1]"<<" default 1 "<<" Printing information to stderr during run"<<endl;
-    cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
+    cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
     cerr<<"\t"<<"-lambda value[double]"<<"\t default 1"<<" The l2 regulation parameter"<<endl; ;
     cerr<<"\t"<<"-gamma value[double]"<<"\t default 0.1"<<" The hinge loss smoothing parameter "<<endl;
     //    cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
@@ -49,7 +50,7 @@ void printUsage(char* ex){
     cerr<<"\t\t"<<"-sigma value[double]"<<"\t default 1"<<" Sigam for the RBF kernel"<<endl;
     cerr<<"\t\t"<<"-degree value[double]"<<"\t default 2"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
     cerr<<"\t\t"<<"-c value[double]"<<"\t default 1"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
-   
+    cerr<<"\t\t"<<"-hidden value[unsigned int]"<<"\t default 20"<<" Number of hidden units in the kernel"<<endl; 
     exit(1);
 }
 
@@ -80,6 +81,7 @@ int main(int argc,char ** argv){
     double sigma = 1; //RBF
     double degree = 2;//Poly
     double c = 1; //Poly
+    unsigned int hidden = 20;
     
     for(int i=2;i<argc; i+= 2){
         bool rec = false;
@@ -148,6 +150,10 @@ int main(int argc,char ** argv){
             c  = atof(argv[i+1]);
             rec = true;
         }
+        if(strcmp("-hidden",argv[i])==0){
+            hidden  = atoi(argv[i+1]);
+            rec = true;
+        }
         if(! rec){
             cerr<<"option "<<argv[i]<<" is not recognized"<<endl;
             printUsage(argv[0]);
@@ -181,6 +187,9 @@ int main(int argc,char ** argv){
             }
             if(kernel_type == "ReluL1"){
                 ker = new reluL1Kernel(data_t);
+            }
+            if(kernel_type == "ZeroOneL2"){
+                ker = new zeroOneL2Kernel(data_t,hidden);
             }
             if(ker==NULL){
                 cerr<<"Unknown kernel: "<<kernel_type<<endl;

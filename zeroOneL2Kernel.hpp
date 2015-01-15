@@ -3,12 +3,13 @@
 #include "Kernel.hpp"
 
 
-const double OneDpi = 0.318309886183790691216444201928;
+
 class zeroOneL2Kernel : public Kernel{
 public:
     zeroOneL2Kernel(matd &data, unsigned int hidden);
     
     virtual double squaredNorm(size_t i);
+    void calc(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res);
     virtual void dot(size_t i,Ref<VectorXd> res);
     virtual void dot(vec &v,Ref<VectorXd> res);
     virtual void dot(const Ref<const  VectorXd> &v,Ref<VectorXd> res);

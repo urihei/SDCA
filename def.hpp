@@ -12,5 +12,7 @@ typedef vector<size_t> ivec;
 typedef vector<vec> matd;
 typedef MatrixXd mat;
 
+
+const double OneDpi = 0.318309886183790691216444201928;
 #endif
 

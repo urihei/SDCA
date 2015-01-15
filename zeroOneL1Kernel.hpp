@@ -3,7 +3,7 @@
 #include "Kernel.hpp"
 
 
-const double OneDpi = 0.318309886183790691216444201928;
+
 class zeroOneL1Kernel : public Kernel{
 public:
     zeroOneL1Kernel(matd &data);

@@ -32,6 +32,7 @@ preKernelSVM::preKernelSVM(ivec &y,Kernel* kernel, size_t k,
         kernel->dot(i,_kernel.col(i));
         _prmArray[i] = i;
     }
+    //    cout<<_kernel<<endl;
     _squaredNormData = _kernel.diagonal();
     _kernel.diagonal().setZero();
     _kerFun = kernel;

@@ -12,6 +12,7 @@ void cumsum(double* a, size_t len,double* b);
 size_t findFirstBetween(double* a,double* bigger, size_t len);
 size_t findFirst(double* a,size_t len);
 void fillMatrix(matd  &data1, mat &data2);
-unsigned int prod(unsigned int s, unsigned int e);
-unsigned int multinomial(unsigned int N,vector <unsigned int> &v);
+unsigned long int prod(unsigned int s, unsigned int e);
+double sumLog(unsigned int s, unsigned int e);
+unsigned long long int multinomial(vector <unsigned int> &v);
 #endif
