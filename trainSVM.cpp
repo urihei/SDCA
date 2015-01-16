@@ -7,10 +7,10 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <algorithm>
-#include "usedFun.hpp"
 #include <map>
 
 #include "def.hpp"
+#include "usedFun.hpp"
 #include "kernelSVM.hpp"
 #include "linearSVM.hpp"
 #include "preKernelSVM.hpp"
@@ -23,8 +23,6 @@
 
 
 
-
-void ReadData(string fileName,matd& data,ivec & label,vector<int> &label_map);
 
 void printUsage(char* ex){
     cerr<<ex<<"\t input_file"<<endl;
@@ -81,7 +79,7 @@ int main(int argc,char ** argv){
     double sigma = 1; //RBF
     double degree = 2;//Poly
     double c = 1; //Poly
-    unsigned int hidden = 20;
+    unsigned int hidden = 5;
     
     for(int i=2;i<argc; i+= 2){
         bool rec = false;
@@ -163,7 +161,7 @@ int main(int argc,char ** argv){
     matd data_t;
     ivec y_t;
     vector<int> label_map;
-    ReadData(data_file,data_t,y_t,label_map);
+    ReadTrainData(data_file,data_t,y_t,label_map);
     size_t k =  label_map.size();
     cerr<<"Finish reading data"<<endl;
     size_t n = y_t.size();
@@ -277,7 +275,7 @@ int main(int argc,char ** argv){
         matd testData;
         ivec y_test;
         vector<int> test_label_map;
-        ReadData(test_file,testData,y_test,test_label_map);
+        ReadTrainData(test_file,testData,y_test,test_label_map);
         cerr<<"Finsh reading test data"<<endl;
         size_t test_size = y_test.size();
         ivec y_res(test_size);
@@ -295,43 +293,4 @@ int main(int argc,char ** argv){
 
     delete sv;
 }
-void ReadData(string fileName,matd& data,ivec & label,vector<int> & label_map){
-    string line;
-    ifstream myfile;
-    myfile.open(fileName.c_str(),ifstream::in);
-    double tmp;
-    map<int,size_t> lMap;
-    unsigned int countLabel = 0;
-    if (!myfile.is_open()){
-        cerr << "Unable to open file" << fileName<<endl; 
-        assert(false);
-    }
-    while ( getline (myfile,line) ){
-        vec v;
-        istringstream iss(line);
-        while(iss){
-            iss>>tmp;
-            if (iss)
-                v.push_back(tmp);
-        }
-        int cl = (int)(v.back());
 
-        map<int,size_t>::iterator lb = lMap.lower_bound(cl);
-        if(lb != lMap.end() && !(lMap.key_comp()(cl, lb->first))){
-            label.push_back(lb->second);
-        }else{
-            label.push_back(countLabel);
-            lMap.insert(lb, map<int,size_t >::value_type(cl, countLabel));
-            countLabel++;
-        }
-
-        v.pop_back();
-
-        data.push_back(v);
-    }
-    label_map.resize(countLabel);
-    for(map<int,size_t>::iterator it = lMap.begin(); it != lMap.end();++it){
-        label_map[it->second] = it->first;
-    }
-    myfile.close();
-}

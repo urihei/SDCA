@@ -2,6 +2,7 @@
 #define _usedFun__
 
 #include "def.hpp"
+#include <string>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/discrete_distribution.hpp>
@@ -15,4 +16,5 @@ void fillMatrix(matd  &data1, mat &data2);
 unsigned long int prod(unsigned int s, unsigned int e);
 double sumLog(unsigned int s, unsigned int e);
 unsigned long long int multinomial(vector <unsigned int> &v);
+void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_map);
 #endif

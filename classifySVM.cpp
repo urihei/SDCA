@@ -58,42 +58,7 @@ void ReadData(string fileName,matd& data){
     readMatrix(myfile,data);
     myfile.close();
 }
-int ReadTrainData(string fileName,matd& data,ivec & label){
-    string line;
-    ifstream myfile;
-    myfile.open(fileName.c_str(),ifstream::in);
-    double tmp;
-    map<int,size_t> lMap;
-    unsigned int countLabel = 0;
-    if (!myfile.is_open()){
-        cerr << "Unable to open file" << fileName<<endl; 
-        assert(false);
-    }
-    while ( getline (myfile,line) ){
-        vec v;
-        istringstream iss(line);
-        while(iss){
-            iss>>tmp;
-            if (iss)
-                v.push_back(tmp);
-        }
-        int cl = (int)(v.back());
-        map<int,size_t>::iterator lb = lMap.lower_bound(cl);
-        if(lb != lMap.end() && !(lMap.key_comp()(cl, lb->first))){
-            label.push_back(lb->second);
-        }else{
-            label.push_back(countLabel);
-            lMap.insert(lb, map<int,size_t >::value_type(cl, countLabel));
-            countLabel++;
-        }
 
-        v.pop_back();
-
-        data.push_back(v);
-    }
-    myfile.close();
-    return countLabel;
-}
 svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv,vector<int> &label_map){
     svm* sv;
     ifstream myfile;
@@ -154,7 +119,8 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv,vector<int> &
 		exit(0);
             }
             string train_fileName(argv[3]);
-            size_t k = ReadTrainData(train_fileName,data_t,y_t);
+	    ReadTrainData(train_fileName,data_t,y_t,label_map);
+            size_t k = label_map.size();
             if(kernel_type == "RBF"){
                 iss >> sigma;
                 ker = new rbfKernel(data_t,sigma);
