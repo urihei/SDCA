@@ -36,7 +36,7 @@ void printUsage(char* ex){
     cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
     cerr<<"\t"<<"-lambda value[double]"<<"\t default 1"<<" The l2 regulation parameter"<<endl; ;
     cerr<<"\t"<<"-gamma value[double]"<<"\t default 0.1"<<" The hinge loss smoothing parameter "<<endl;
-    //    cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
+    cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
     cerr<<"\t"<<"-iter value[double]"<<"\t default [100|5]"<<" The maximum number of times the whole data is iterated in each SDCA run(if accelerated is used the defualt is 5)"<<endl;
     cerr<<"\t"<<"-iter_acc value[unsigned int]"<<"\t default [0]"<<" The maximum number of times the acclerated algorithm is repeated"<<endl;
 
@@ -67,7 +67,7 @@ int main(int argc,char ** argv){
     string kernel_type = "Linear";
     double lambda = 1;
     double gamma = 0.1;
-    // bool lambda_find = false;
+    bool lambda_find = false;
     
     double iter = 100;
     size_t acc_iter = 0;
@@ -109,10 +109,10 @@ int main(int argc,char ** argv){
             gamma  = atof(argv[i+1]);
             rec = true;
         }
-        // if(strcmp("-lambda_find",argv[i])==0){
-        //     lambda_find = argv[i+1][0] == '1';
-        //     rec = true;
-        // }
+	if(strcmp("-lambda_find",argv[i])==0){
+	  lambda_find = argv[i+1][0] == '1';
+	  rec = true;
+	}
         if(strcmp("-iter",argv[i])==0){
             iter  = atof(argv[i+1]);
             rec = true;
@@ -209,28 +209,53 @@ int main(int argc,char ** argv){
 
     cerr<<"Finish creating the svm object"<<endl;
 
-    // if(lambda_find){
-    //     unsigned int folds = 5;
-    //     double lambda_val[] = {1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1,1e2,1e3,1e4,1e5};
-    //     cerr<<"Finding lambda"<<endl;
-    //     size_t train_size = (folds-1.0)/folds * n;
-    //     sv->setUsedN(train_size);
-    //     sv->samplePrm();
-    //     double best_lambda = -1;
-    //     double best_res = -1;
-    //     for(size_t lm=0;lm<11;++lm){
-    //         sv->setLambda(lambda_val[lm]);
-    //         for(size_t i=0;i<folds; ++ i){
-    //             if(acc_iter >0){
-    //                 sv->learn_acc_SDCA();
-    //             }else{
-    //                 sv->learn_SDCA();
-    //             }
-                
-    //         }
-    //     }
-    // }
-
+    if(lambda_find){
+        unsigned int folds = 5;
+        double lambda_val[] = {1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e2};
+        cerr<<"Finding lambda"<<endl;
+        size_t train_size = (folds-1.0)/folds * n;
+	size_t test_size = n-train_size;
+	cerr<<train_size<<" "<<test_size<<endl;
+        sv->setUsedN(train_size);
+        sv->samplePrm();
+        double best_lambda = -1;
+        double best_res = test_size*folds;
+	matd testSet;
+	testSet.resize(test_size);
+	ivec res(test_size);
+        for(size_t lm=0;lm<10;++lm){
+	  sv->setVerbose(false);
+	  cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
+            sv->setLambda(lambda_val[lm]);
+	    unsigned int  err =0;
+            for(size_t i=0;i<folds; ++i){
+                if(acc_iter >0){
+                    sv->learn_acc_SDCA();
+                }else{
+                    sv->learn_SDCA();
+                }
+		//		cerr<<"geting perm array"<<endl;
+                ivec_iter itb = sv->getPrmArrayBegin()+train_size;
+		ivec_iter ite = sv->getPrmArrayEnd();
+		sv->classify(itb,ite,res);
+		size_t j=0;
+		for(ivec_iter it =itb; it<ite;++it){
+		  //	  cerr<<*it<<" "<<res[j]<<" "<<y_t[*it]<<endl;
+		  if(label_map[res[j++]] != label_map[y_t[*it]])
+		    err++;
+		}
+		sv->shiftPrm(test_size);
+            }
+	    if(err<= best_res){
+	      best_res = err;
+	      best_lambda = lambda_val[lm];
+	    }
+	    cerr<<err<<endl;
+        }
+	cout<<"Lambda:\t"<<best_lambda<<endl;
+	sv->setLambda(best_lambda);
+	sv->setVerbose(verbose);
+    }
     
     if(acc_iter >0){
         sv->learn_acc_SDCA();

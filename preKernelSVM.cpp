@@ -114,7 +114,8 @@ void preKernelSVM::classify(matd &data, ivec &res){
         VectorXd kerCol(_n);
         VectorXd ya(_k);
         MatrixXf::Index index;
-        cerr<<"Start kernel classify"<<endl;
+	if(_verbose)
+	  cerr<<"Start kernel classify"<<endl;
         for(size_t i=0;i<t_n;++i){
             _kerFun->dot(data[i],kerCol);
             ya = _alpha * kerCol;
@@ -135,6 +136,20 @@ void preKernelSVM::classify( const Ref<const MatrixXd> &mData, ivec &res){
     }
   
 }
+void preKernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
+  size_t n = std::distance(itb,ite);
+  if(res.size() != n){
+    res.resize(n);
+  }
+  //MatrixXd ya(_k);
+  MatrixXf::Index index;
+  size_t i=0;
+  for(ivec_iter it = itb;it<ite;++it){
+    (_alpha * _kernel.col(*it)).array().maxCoeff(&index);
+    res[i++] = (size_t) index;
+  }
+}
+
 void preKernelSVM::saveModel(FILE* pFile){
     if(_kerFun == NULL){
         saveModel(pFile,"preCalcKernel",_alpha);

@@ -89,6 +89,20 @@ void kernelSVM::classify(matd &data, ivec &res){
     }
     
 }
+void kernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
+  size_t n = std::distance(itb,ite);
+  if(res.size() != n){
+    res.resize(n);
+  }
+  VectorXd kerCol(_n);
+  MatrixXf::Index index;
+  size_t i =0;
+  for(ivec_iter it =itb; it<ite;++it){
+    _ker->dot(*it,kerCol);
+    (_alpha * kerCol).maxCoeff(&index);
+    res[i++] = (size_t) index;
+  }
+}
 void kernelSVM::classify(const Ref <const MatrixXd> &data,ivec &res){
     size_t n = data.cols();
     VectorXd ya(_k);

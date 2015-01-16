@@ -9,6 +9,7 @@ using namespace std;
 
 typedef vector<double> vec;
 typedef vector<size_t> ivec;
+typedef vector<size_t>::iterator ivec_iter;
 typedef vector<vec> matd;
 typedef MatrixXd mat;
 

@@ -187,6 +187,9 @@ void linearSVM::classify(matd &data,ivec &res){
 }
 void linearSVM::classify(const Ref<const MatrixXd> &mData,ivec &res){
     size_t n = mData.cols();
+    if(res.size() != n){
+      res.resize(n);
+    }
     MatrixXd ya(_k,n);
     ya = _W.transpose()* mData;
     MatrixXf::Index index;
@@ -197,6 +200,19 @@ void linearSVM::classify(const Ref<const MatrixXd> &mData,ivec &res){
         // cerr<<res[i]<<endl;
     }
 }
+void linearSVM::classify(ivec_iter& itb ,ivec_iter& ite,ivec &res){
+  size_t n = std::distance(itb,ite);
+  if(res.size() != n){
+    res.resize(n);
+  }
+    MatrixXf::Index index;
+    size_t i=0;
+    for(ivec_iter it =itb; it<ite;++it){
+      (_W*(_data.col(*it))).maxCoeff(&index);
+      res[i++] = (size_t) index;   
+    }
+} 
+
 void linearSVM::saveModel(FILE* pFile){
     saveModel(pFile,"Linear",_W);
 }

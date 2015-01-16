@@ -18,7 +18,7 @@ public:
     virtual double getGap();
     virtual void classify(matd &data,ivec &res);
     virtual void classify(const Ref<const MatrixXd> &data,ivec &res);
-    
+  virtual void classify(ivec_iter& itb ,ivec_iter& ite ,ivec &res);    
     using svm::saveModel;
     virtual void saveModel(FILE* pFile);
     virtual void setParameter(matd &par);

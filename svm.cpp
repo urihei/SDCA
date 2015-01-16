@@ -41,7 +41,16 @@ void svm::setUsedN(size_t n){
 }
 
 void svm::samplePrm(){
-    randperm(_n,_prmArray,_prmArray);
+  ivec tmp(_n);
+  randperm(_n,tmp,_prmArray);
+  _prmArray = tmp;
+}
+
+ivec_iter svm::getPrmArrayBegin(){
+  return _prmArray.begin();
+}
+ivec_iter svm::getPrmArrayEnd(){
+  return _prmArray.end();
 }
 
 void svm::shiftPrm(size_t n){
