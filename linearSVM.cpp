@@ -219,3 +219,7 @@ void linearSVM::saveModel(FILE* pFile){
 void linearSVM::setParameter(matd &par){
     fillMatrix(par,_W);
 }
+
+void linearSVM::init(){
+  _W.setZero();
+}

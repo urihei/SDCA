@@ -28,6 +28,8 @@ public:
   virtual void setIter(unsigned int iter);
   virtual void setAccIter(unsigned int iter);
 
+  virtual void init()=0;
+
   virtual void setCheckGap(unsigned int checkGap);
   virtual void setCheckGapAcc(unsigned int checkGap);
   virtual void setLambda(double lambda);

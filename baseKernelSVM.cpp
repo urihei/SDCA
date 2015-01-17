@@ -109,3 +109,7 @@ void baseKernelSVM::learn_acc_SDCA(){
 void baseKernelSVM::setParameter(matd &par){
     fillMatrix(par,_alpha);
 }
+
+void baseKernelSVM::init(){
+  _alpha.setZero();
+}

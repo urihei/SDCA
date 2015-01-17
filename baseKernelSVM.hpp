@@ -24,7 +24,7 @@ public:
   virtual void setParameter(matd &par);
     
   virtual void getCol(size_t i,Ref<VectorXd> kerCol)=0;
-    
+  virtual void init();
 protected:
   
   mat _alpha;

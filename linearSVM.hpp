@@ -22,6 +22,7 @@ public:
     using svm::saveModel;
     virtual void saveModel(FILE* pFile);
     virtual void setParameter(matd &par);
+  virtual void init();
 protected:
     double getGap(const Ref<const MatrixXd> &alpha, const Ref<const MatrixXd>  &zW);
     size_t _p;// number of features

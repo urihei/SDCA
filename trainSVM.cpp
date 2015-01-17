@@ -171,6 +171,7 @@ int main(int argc,char ** argv){
         sv = new linearSVM(y_t,data_t,k,lambda,gamma,iter*n,acc_iter);
     }else{
         if( kernel_type == "preCalcKernel"){
+	  cerr<<"Create predefined kernel"<<endl;
             sv = new preKernelSVM(y_t,data_t,k,lambda,gamma,iter*n,acc_iter);
         }else{
 
@@ -225,6 +226,7 @@ int main(int argc,char ** argv){
 	  sv->setVerbose(false);
 	  cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
             sv->setLambda(lambda_val[lm]);
+	    sv->init();
 	    unsigned int  err =0;
             for(size_t i=0;i<folds; ++i){
                 if(acc_iter >0){
@@ -238,7 +240,7 @@ int main(int argc,char ** argv){
 		sv->classify(itb,ite,res);
 		size_t j=0;
 		for(ivec_iter it =itb; it<ite;++it){
-		  //	  cerr<<*it<<" "<<res[j]<<" "<<y_t[*it]<<endl;
+		  //cerr<<*it<<" "<<res[j]<<" "<<y_t[*it]<<endl;
 		  if(label_map[res[j++]] != label_map[y_t[*it]])
 		    err++;
 		}
