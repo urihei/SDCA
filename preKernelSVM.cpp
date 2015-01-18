@@ -65,6 +65,12 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
     for(unsigned int t=1;t<=_iter;++t){
         if((ind % _usedN) == 0){
             randperm(_usedN,prm,_prmArray);
+	    // cerr<<"_________________"<<endl;
+	    // for(size_t ii=0; ii<_usedN;++ii){
+	    //   cerr<<prm[ii]<<" ";
+	    // }
+	    
+	    // cerr<<endl;
             ind = 0;
         }
         size_t i = prm[ind];
@@ -84,7 +90,7 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
         // END optimizeDual_SDCA
         //alpha.col(i) = -a;
         //alpha(_y[i],i) = a.matrix().lpNorm<1>();
-        if( t % (_n* _checkGap) == 0){
+        if( t % (_usedN* _checkGap) == 0){
             gap = getGap(alpha,zALPHA);
             
         }

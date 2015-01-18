@@ -223,7 +223,7 @@ int main(int argc,char ** argv){
 	testSet.resize(test_size);
 	ivec res(test_size);
         for(size_t lm=0;lm<10;++lm){
-	  sv->setVerbose(false);
+	  //	  sv->setVerbose(false);
 	  cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
             sv->setLambda(lambda_val[lm]);
 	    sv->init();

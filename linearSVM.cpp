@@ -149,7 +149,8 @@ double linearSVM::getGap(const Ref<const MatrixXd> &alpha, const Ref<const Matri
     ArrayXd a(_k);
     ArrayXd b(_k);
     
-    for(size_t i = 0; i<_n;++i){
+    for(size_t ii = 0; ii<_usedN;++ii){
+      size_t i= _prmArray[i];
         size_t currentLabel = _y[i];
 
         a = _W.transpose() * _data.col(i);
