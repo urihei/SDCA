@@ -201,6 +201,7 @@ int main(int argc,char ** argv){
             }
         }
     }
+    cerr<<"Lambda: "<<sv->getLambda()<<endl;
     sv->setVerbose(verbose);
     sv->setCheckGap(checkGap);
     sv->setCheckGapAcc(checkGapAcc);
@@ -223,8 +224,8 @@ int main(int argc,char ** argv){
 	testSet.resize(test_size);
 	ivec res(test_size);
         for(size_t lm=0;lm<10;++lm){
-	  sv->setVerbose(false);
-	  cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
+            //sv->setVerbose(false);
+            cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
             sv->setLambda(lambda_val[lm]);
 	    sv->init();
 	    unsigned int  err =0;
