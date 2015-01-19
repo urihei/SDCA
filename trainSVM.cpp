@@ -211,7 +211,7 @@ int main(int argc,char ** argv){
 
     if(lambda_find){
         unsigned int folds = 5;
-        double lambda_val[] = {1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e2};
+        double lambda_val[] = {1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e10,1e2,1e3};
         cerr<<"Finding lambda"<<endl;
         size_t train_size = (folds-1.0)/folds * n;
 	size_t test_size = n-train_size;
@@ -223,9 +223,10 @@ int main(int argc,char ** argv){
 	matd testSet;
 	testSet.resize(test_size);
 	ivec res(test_size);
-        for(size_t lm=0;lm<10;++lm){
-            //sv->setVerbose(false);
+        for(size_t lm=0;lm<11;++lm){
+            sv->setVerbose(false);
             cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
+
             sv->setLambda(lambda_val[lm]);
 	    sv->init();
 	    unsigned int  err =0;
@@ -255,6 +256,7 @@ int main(int argc,char ** argv){
         }
 	cout<<"Lambda:\t"<<best_lambda<<endl;
 	sv->setLambda(best_lambda);
+        sv->setUsedN(n);
 	sv->setVerbose(verbose);
     }
     

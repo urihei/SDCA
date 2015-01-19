@@ -57,7 +57,7 @@ double kernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd> &z
         //note alpha is changing here
         optimizeDual_SDCA(mu,C,alpha,i,curLabel);
         
-        if( t % (_n* _checkGap) == 0){
+        if( t % (_usedN* _checkGap) == 0){
             gap = getGap(alpha,zALPHA);
             
         }
