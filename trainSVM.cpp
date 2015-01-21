@@ -211,7 +211,7 @@ int main(int argc,char ** argv){
 
     if(lambda_find){
         unsigned int folds = 5;
-        double lambda_val[] = {1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e10,1e2,1e3};
+        double lambda_val[] = {1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3};
         cerr<<"Finding lambda"<<endl;
         size_t train_size = (folds-1.0)/folds * n;
 	size_t test_size = n-train_size;

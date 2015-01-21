@@ -89,6 +89,9 @@ unsigned long int prod(unsigned int s, unsigned int e){
  * Calc multinomial coefficient /2^N
  **/
 unsigned long long int multinomial(vector<unsigned int> &v){
+    return round(exp(logMultinomial(v)));
+}
+double logMultinomial(vector<unsigned int> &v){
     size_t l = v.size();
     std::sort(v.begin(),v.end());
     std::reverse(v.begin(),v.end());
@@ -100,7 +103,7 @@ unsigned long long int multinomial(vector<unsigned int> &v){
         k += v[d];
     }
     //    cerr<<endl;
-    return round(exp(ret));
+    return ret;
 }
 void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_map){
     string line;
