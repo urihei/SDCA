@@ -20,7 +20,8 @@
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
 #include "linearKernel.hpp"
-
+#include "saulZeroKernel.hpp"
+#include "saulOneKernel.hpp"
 
 
 int ReadData(string fileName,matd& data,ivec & label){
@@ -98,7 +99,9 @@ int main(int argc,char ** argv){
     size_t n = y_t.size();
     double lambda = 10/(n+0.0);
     //    polyKernel* ker = new polyKernel(data_t,2,1);
-    zeroOneL2Kernel* ker = new zeroOneL2Kernel(data_t,N);
+    // zeroOneL2Kernel* ker = new zeroOneL2Kernel(data_t,N);
+    //saulZeroKernel* ker = new saulZeroKernel(data_t,0);
+    saulOneKernel* ker = new saulOneKernel(data_t,0);
     cerr<<"Finish create kernel"<<endl;
     ArrayXd alpha(64);
     for(size_t i=0;i<64;++i){
@@ -107,9 +110,11 @@ int main(int argc,char ** argv){
     }
     VectorXd res(64);
     VectorXd res2(64);
-    ker->calc(alpha*OneDpi,res);
+    //    ker->calc(alpha*OneDpi,res);
+    //    alpha = alpha.cos();
+    ker->calcAngle(alpha,5);
     cerr<<"finish calc 1"<<endl;
-    cout<<endl<<"RES:\n"<<res<<endl;
+    cout<<endl<<"RES:\n"<<alpha<<endl;
     exit(0);
 
     //    reluL1Kernel* ker = new reluL1Kernel(data_t);

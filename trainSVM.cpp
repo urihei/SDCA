@@ -19,6 +19,8 @@
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
+#include "saulZeroKernel.hpp"
+#include "saulOneKernel.hpp"
 //#include "linearKernel.hpp"
 
 
@@ -31,7 +33,7 @@ void printUsage(char* ex){
     cerr<<"\t"<<"-m model_file"<<" default no saving"<<" The file name the model will be saved to  if not given the model is not saved"<<endl;
     cerr<< "\t"<<"-test test_data"<<"default no testing" <<" A file name of the data to test the classifier on " <<endl;
     cerr<<"\t"<<"-verbose [0|1]"<<" default 1 "<<" Printing information to stderr during run"<<endl;
-    cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
+    cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2|saulZero|saulOne]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
     cerr<<"\t"<<"-lambda value[double]"<<"\t default 1"<<" The l2 regulation parameter"<<endl; ;
     cerr<<"\t"<<"-gamma value[double]"<<"\t default 0.1"<<" The hinge loss smoothing parameter "<<endl;
     cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
@@ -48,7 +50,8 @@ void printUsage(char* ex){
     cerr<<"\t\t"<<"-sigma value[double]"<<"\t default 1"<<" Sigam for the RBF kernel"<<endl;
     cerr<<"\t\t"<<"-degree value[double]"<<"\t default 2"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
     cerr<<"\t\t"<<"-c value[double]"<<"\t default 1"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
-    cerr<<"\t\t"<<"-hidden value[unsigned int]"<<"\t default 20"<<" Number of hidden units in the kernel"<<endl; 
+    cerr<<"\t\t"<<"-hidden value[unsigned int]"<<"\t default 20"<<" Number of hidden units in the kernel"<<endl;
+    cerr<<"\t\t"<<"-l value[unsigned int]"<<"\t default 0"<<" Number of layers in Saul kernels"<<endl;
     exit(1);
 }
 
@@ -79,6 +82,7 @@ int main(int argc,char ** argv){
     double sigma = 1; //RBF
     double degree = 2;//Poly
     double c = 1; //Poly
+    unsigned int l = 0;
     unsigned int hidden = 5;
     
     for(int i=2;i<argc; i+= 2){
@@ -152,6 +156,10 @@ int main(int argc,char ** argv){
             hidden  = atoi(argv[i+1]);
             rec = true;
         }
+        if(strcmp("-l",argv[i])==0){
+            l  = atoi(argv[i+1]);
+            rec = true;
+        }
         if(! rec){
             cerr<<"option "<<argv[i]<<" is not recognized"<<endl;
             printUsage(argv[0]);
@@ -164,6 +172,7 @@ int main(int argc,char ** argv){
     ReadTrainData(data_file,data_t,y_t,label_map);
     size_t k =  label_map.size();
     cerr<<"Finish reading data"<<endl;
+    time_t start_time =time(NULL);
     size_t n = y_t.size();
     Kernel* ker= NULL;
     svm* sv;
@@ -190,6 +199,12 @@ int main(int argc,char ** argv){
             if(kernel_type == "ZeroOneL2"){
                 ker = new zeroOneL2Kernel(data_t,hidden);
             }
+            if(kernel_type == "saulZero"){
+                ker = new saulZeroKernel(data_t,l);
+            }
+            if(kernel_type == "saulOne"){
+                ker = new saulOneKernel(data_t,l);
+            }
             if(ker==NULL){
                 cerr<<"Unknown kernel: "<<kernel_type<<endl;
                 printUsage(argv[0]);
@@ -201,6 +216,8 @@ int main(int argc,char ** argv){
             }
         }
     }
+    time_t kernel_creation = time(NULL)-start_time;
+    cerr<<"Kerenel creating time "<< kernel_creation<<endl;
     cerr<<"Lambda: "<<sv->getLambda()<<endl;
     sv->setVerbose(verbose);
     sv->setCheckGap(checkGap);
@@ -210,8 +227,8 @@ int main(int argc,char ** argv){
     cerr<<"Finish creating the svm object"<<endl;
 
     if(lambda_find){
-        unsigned int folds = 5;
-        double lambda_val[] = {1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3};
+        unsigned int folds = 6;
+        vec lambda_val = {1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5};
         cerr<<"Finding lambda"<<endl;
         size_t train_size = (folds-1.0)/folds * n;
 	size_t test_size = n-train_size;
@@ -223,7 +240,7 @@ int main(int argc,char ** argv){
 	matd testSet;
 	testSet.resize(test_size);
 	ivec res(test_size);
-        for(size_t lm=0;lm<11;++lm){
+        for(size_t lm=0;lm<lambda_val.size();++lm){
             sv->setVerbose(false);
             cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
 
@@ -254,18 +271,19 @@ int main(int argc,char ** argv){
 	    }
 	    cerr<<err<<endl;
         }
-	cout<<"Lambda:\t"<<best_lambda<<endl;
+	cout<<"Lambda:\t"<<best_lambda<<"\tErr\t"<<best_res<<endl;
 	sv->setLambda(best_lambda);
         sv->setUsedN(n);
 	sv->setVerbose(verbose);
     }
-    
+    start_time = time(NULL);
     if(acc_iter >0){
         sv->learn_acc_SDCA();
     }else{
         sv->learn_SDCA();
     }
-    
+    time_t learning_time = time(NULL)-start_time;
+    cout<<"Kernel creation time\t"<<kernel_creation<<"\tLearning time\t"<< learning_time<<endl; 
     if(model_file != ""){
         FILE* pFile = fopen(model_file.c_str(),"w");
         for(size_t i=0;i<k;++i){
