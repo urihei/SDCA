@@ -59,7 +59,7 @@ double baseKernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd
 }
 
 
-void baseKernelSVM::learn_acc_SDCA(){
+double baseKernelSVM::learn_acc_SDCA(){
   double kappa = 10/_n;//100*_lambda;
   double mu = _lambda/2;
   double rho = mu+kappa;
@@ -106,6 +106,7 @@ void baseKernelSVM::learn_acc_SDCA(){
       break;
     xi = xi * (1-eta);
   }
+  return gap;
 }
 
 void baseKernelSVM::setParameter(matd &par){

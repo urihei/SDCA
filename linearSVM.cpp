@@ -100,7 +100,7 @@ double linearSVM::learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW,
     return gap;
 }
 
-void linearSVM::learn_acc_SDCA(){
+double linearSVM::learn_acc_SDCA(){
     double kappa = 100*_lambda;
     double mu = _lambda/2;
     double rho = mu+kappa;
@@ -129,10 +129,12 @@ void linearSVM::learn_acc_SDCA(){
     for(unsigned int t =1; t<=_accIter; ++t){
         epsilon_t = learn_SDCA(alpha, zW,eta/OnePetaSquare * xi);
 	if(t%_checkGapAcc ==0){
-	  cerr<<"ACC iter: "<<t<<" gap: ";
+          if(_verbose)
+            cerr<<"ACC iter: "<<t<<" gap: ";
 	  gap = (1+rho/mu)*epsilon_t + 
 	    (rho*kappa)/(2*mu)*(_W-zW).squaredNorm();
-	  cerr<<gap<<endl;;
+          if(_verbose)
+            cerr<<gap<<endl;
 	}
         if(gap < _eps)
 	  break;
@@ -140,6 +142,7 @@ void linearSVM::learn_acc_SDCA(){
         W_t = _W*1;
         xi = xi * (1-eta);
     }
+    return gap;
 }
 
 double linearSVM::getGap(const Ref<const MatrixXd> &alpha, const Ref<const MatrixXd> &zW){
@@ -209,7 +212,7 @@ void linearSVM::classify(ivec_iter& itb ,ivec_iter& ite,ivec &res){
     MatrixXf::Index index;
     size_t i=0;
     for(ivec_iter it =itb; it<ite;++it){
-      (_W*(_data.col(*it))).maxCoeff(&index);
+      (_W.transpose() * (_data.col(*it))).array().maxCoeff(&index);
       res[i++] = (size_t) index;   
     }
 } 

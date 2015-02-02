@@ -99,7 +99,7 @@ void kernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
   size_t i =0;
   for(ivec_iter it =itb; it<ite;++it){
     _ker->dot(*it,kerCol);
-    (_alpha * kerCol).maxCoeff(&index);
+    (_alpha * kerCol).array().maxCoeff(&index);
     res[i++] = (size_t) index;
   }
 }

@@ -14,7 +14,7 @@ public:
     virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW);
     virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW,double eps);
     
-    virtual void learn_acc_SDCA();
+    virtual double learn_acc_SDCA();
     virtual double getGap();
     virtual void classify(matd &data,ivec &res);
     virtual void classify(const Ref<const MatrixXd> &data,ivec &res);

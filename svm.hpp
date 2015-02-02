@@ -14,7 +14,7 @@ public:
   virtual ~svm();
   virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zALPHA)=0;
   virtual double learn_SDCA()=0;
-  virtual void learn_acc_SDCA()=0;
+  virtual double learn_acc_SDCA()=0;
 
   virtual double getGap()=0;
   virtual void classify(matd &data,ivec &res)=0;

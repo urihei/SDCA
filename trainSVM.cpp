@@ -19,6 +19,7 @@
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
+#include "zeroOneRKernel.hpp"
 #include "saulZeroKernel.hpp"
 #include "saulOneKernel.hpp"
 //#include "linearKernel.hpp"
@@ -33,7 +34,7 @@ void printUsage(char* ex){
     cerr<<"\t"<<"-m model_file"<<" default no saving"<<" The file name the model will be saved to  if not given the model is not saved"<<endl;
     cerr<< "\t"<<"-test test_data"<<"default no testing" <<" A file name of the data to test the classifier on " <<endl;
     cerr<<"\t"<<"-verbose [0|1]"<<" default 1 "<<" Printing information to stderr during run"<<endl;
-    cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2|saulZero|saulOne]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
+    cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2|ZeroOneR|saulZero|saulOne]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
     cerr<<"\t"<<"-lambda value[double]"<<"\t default 1"<<" The l2 regulation parameter"<<endl; ;
     cerr<<"\t"<<"-gamma value[double]"<<"\t default 0.1"<<" The hinge loss smoothing parameter "<<endl;
     cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
@@ -50,7 +51,8 @@ void printUsage(char* ex){
     cerr<<"\t\t"<<"-sigma value[double]"<<"\t default 1"<<" Sigam for the RBF kernel"<<endl;
     cerr<<"\t\t"<<"-degree value[double]"<<"\t default 2"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
     cerr<<"\t\t"<<"-c value[double]"<<"\t default 1"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
-    cerr<<"\t\t"<<"-hidden value[unsigned int]"<<"\t default 20"<<" Number of hidden units in the kernel"<<endl;
+    cerr<<"\t\t"<<"-hidden value[unsigned int]"<<"\t default 20"<<" Number of hidden units in the ZeroOneL2 kernel"<<endl;
+    cerr<<"\t\t"<<"-hidden_layer value'-'value'-'...'-'value[unsigned int vector]"<<"\t default [20-10]"<<" Number of hidden units in each layer of the ZeroOneR kernel"<<endl;
     cerr<<"\t\t"<<"-l value[unsigned int]"<<"\t default 0"<<" Number of layers in Saul kernels"<<endl;
     exit(1);
 }
@@ -84,6 +86,7 @@ int main(int argc,char ** argv){
     double c = 1; //Poly
     unsigned int l = 0;
     unsigned int hidden = 5;
+    ivec hidden_layer {1,20,10};
     
     for(int i=2;i<argc; i+= 2){
         bool rec = false;
@@ -156,6 +159,17 @@ int main(int argc,char ** argv){
             hidden  = atoi(argv[i+1]);
             rec = true;
         }
+        if(strcmp("-hidden_layer",argv[i])==0){
+          stringstream ss(argv[i+1]);
+          hidden_layer.clear();
+          hidden_layer.push_back(1);
+          string item;
+          while(getline(ss,item,'-')){
+            hidden_layer.push_back(atoi(item.c_str()));
+          }
+          rec = true;
+        }
+        
         if(strcmp("-l",argv[i])==0){
             l  = atoi(argv[i+1]);
             rec = true;
@@ -165,7 +179,10 @@ int main(int argc,char ** argv){
             printUsage(argv[0]);
         }
     }
-    
+    for(size_t i=0;i<hidden_layer.size();++i){
+      cerr<<hidden_layer[i]<<" ";
+    }
+    cerr<<endl;
     matd data_t;
     ivec y_t;
     vector<int> label_map;
@@ -198,6 +215,9 @@ int main(int argc,char ** argv){
             }
             if(kernel_type == "ZeroOneL2"){
                 ker = new zeroOneL2Kernel(data_t,hidden);
+            }
+            if(kernel_type == "ZeroOneR"){
+                ker = new zeroOneRKernel(data_t,hidden_layer);
             }
             if(kernel_type == "saulZero"){
                 ker = new saulZeroKernel(data_t,l);
@@ -240,6 +260,7 @@ int main(int argc,char ** argv){
 	matd testSet;
 	testSet.resize(test_size);
 	ivec res(test_size);
+        ivec res2(train_size); //to remove
         for(size_t lm=0;lm<lambda_val.size();++lm){
             sv->setVerbose(false);
             cerr<<"LM: "<<lm<<" "<<lambda_val[lm]<<"\t";
@@ -247,13 +268,16 @@ int main(int argc,char ** argv){
             sv->setLambda(lambda_val[lm]);
 	    sv->init();
 	    unsigned int  err =0;
+            unsigned int tr_err = 0;
             for(size_t i=0;i<folds; ++i){
+              double gap;
                 if(acc_iter >0){
-                    sv->learn_acc_SDCA();
+                    gap = sv->learn_acc_SDCA();
                 }else{
-                    sv->learn_SDCA();
+                    gap = sv->learn_SDCA();
                 }
-		//		cerr<<"geting perm array"<<endl;
+                cerr<<i<<": "<<gap<<"\t";
+                //cerr<<"geting perm array"<<endl;
                 ivec_iter itb = sv->getPrmArrayBegin()+train_size;
 		ivec_iter ite = sv->getPrmArrayEnd();
 		sv->classify(itb,ite,res);
@@ -263,13 +287,24 @@ int main(int argc,char ** argv){
 		  if(label_map[res[j++]] != label_map[y_t[*it]])
 		    err++;
 		}
+                //begin to remove
+                itb = sv->getPrmArrayBegin();
+                ite = sv->getPrmArrayEnd() - test_size;
+                sv->classify(itb,ite,res2);
+		j=0;
+		for(ivec_iter it =itb; it<ite;++it){
+		  //cerr<<*it<<" "<<res[j]<<" "<<y_t[*it]<<endl;
+		  if(label_map[res2[j++]] != label_map[y_t[*it]])
+		    tr_err++;
+		}
+                //end to remove
 		sv->shiftPrm(test_size);
             }
 	    if(err<= best_res){
 	      best_res = err;
 	      best_lambda = lambda_val[lm];
 	    }
-	    cerr<<err<<endl;
+	    cerr<<err<<"\tTrain err\t"<<tr_err<<endl;
         }
 	cout<<"Lambda:\t"<<best_lambda<<"\tErr\t"<<best_res<<endl;
 	sv->setLambda(best_lambda);

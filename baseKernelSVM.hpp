@@ -13,7 +13,7 @@ public:
   virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zAlpha);
   virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zAlpha,double epsilon)=0;
 
-  virtual void learn_acc_SDCA();
+  virtual double learn_acc_SDCA();
   virtual void classify(matd &data,ivec &res)=0;
   virtual void classify(ivec_iter &itb,ivec_iter &ite,ivec &res)=0;
   //    virtual void classify(mat &data,ivec &res)=0;
