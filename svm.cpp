@@ -56,7 +56,9 @@ ivec_iter svm::getPrmArrayEnd(){
 void svm::shiftPrm(size_t n){
     std::rotate(_prmArray.begin(),_prmArray.begin()+n,_prmArray.end());
 }
-
+size_t svm::getN(){
+    return _n;
+}
 unsigned int svm::getIter(){
     return _iter;
 }
@@ -91,8 +93,8 @@ void svm::optimizeDual_SDCA(const Ref<const ArrayXd> &mu,double C,Ref<MatrixXd> 
 
     //creating muh
     muh = mu.max(0);
-    sort(muh.data(),muh.data()+_k);
-    muh.reverseInPlace();
+    sort(muh.data(),muh.data()+_k,std::greater<double>());
+    //muh.reverseInPlace();
     //creating mub
     cumsum(muh.data(),_k,mub.data());
     //creating z

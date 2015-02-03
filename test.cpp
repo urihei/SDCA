@@ -83,7 +83,7 @@ int main(int argc,char ** argv){
     // cout<<endl;
     // exit(0);
     vector<unsigned int> v(4);
-    unsigned int N = 10;
+    unsigned int N = 15;
     unsigned int s1 = 5;
     unsigned int s2 = 3;
     unsigned int i = 2; 
@@ -92,7 +92,8 @@ int main(int argc,char ** argv){
     v[2] = s2-i;
     v[3] = N+i-s1-s2;
     cerr<<N+i-s1-s2<<"-"<<multinomial(v)<<endl;
-    //exit(0);
+cerr<<v[0]<<" "<<v[1]<<" "<<v[2]<<" "<<v[3]<<endl;
+    exit(0);
     string  fileName(argv[1]);
     matd data_t;
     ivec y_t;

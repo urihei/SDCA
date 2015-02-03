@@ -43,6 +43,7 @@ public:
   virtual ivec_iter getPrmArrayBegin();
   virtual ivec_iter getPrmArrayEnd();
   
+  virtual size_t getN();
   virtual unsigned int getIter();
   virtual unsigned int getAccIter();
   virtual unsigned int getCheckGap();

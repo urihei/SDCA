@@ -70,10 +70,11 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
 	    //   cerr<<prm[ii]<<" ";
 	    // }
 	    
-	    // cerr<<endl;
+	    //cerr<<endl;
             ind = 0;
         }
         size_t i = prm[ind];
+        //cerr<<i<<"@";
         size_t curLabel = _y[i];
 
 
@@ -100,7 +101,7 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
         
         ind++;
     }
-
+    //cerr<<endl;
     //    cerr<<alpha<<endl;
     
     if(gap >eps){
@@ -150,8 +151,11 @@ void preKernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
   //MatrixXd ya(_k);
   MatrixXf::Index index;
   size_t i=0;
+  //  cerr<<_alpha<<endl;
   for(ivec_iter it = itb;it<ite;++it){
-    (_alpha * _kernel.col(*it)).array().maxCoeff(&index);
+    VectorXd tmp = _kernel.col(*it);
+    tmp(*it) = _squaredNormData(*it);
+    (_alpha * tmp).array().maxCoeff(&index);
     res[i++] = (size_t) index;
   }
 }

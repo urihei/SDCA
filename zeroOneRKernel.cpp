@@ -17,11 +17,12 @@ zeroOneRKernel::zeroOneRKernel(matd &data, ivec & hidden):_l(hidden.size()){
   }
   _preCalc.resize(_l);
   for(size_t i = 0;i<_l;++i){
-    _preCalc[i].resize(_hidden[i]);
-    for(size_t j=0;j<_hidden[i];++j){
+    _preCalc[i].resize(_hidden[i]+1);
+    for(size_t j=0;j<=_hidden[i];++j){
       _preCalc[i][j] =0;
     }
   }
+
   vector<unsigned int> multi(4);
   for(size_t l=0;l<_l;++l){
     for(size_t s1=1;s1<=_hidden[l];++s1){
@@ -46,9 +47,7 @@ zeroOneRKernel::zeroOneRKernel(matd &data, ivec & hidden):_l(hidden.size()){
             }
           }
                     
-        //                cerr<<_preCalc[s1-1][s2-1][i]<<" ";
         }
-      //            cerr<<endl;
       }
     }
     if(_hidden[l] <= 40){

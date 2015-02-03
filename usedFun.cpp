@@ -93,11 +93,10 @@ unsigned long long int multinomial(vector<unsigned int> &v){
 }
 double logMultinomial(vector<unsigned int> &v){
     size_t l = v.size();
-    std::sort(v.begin(),v.end());
-    std::reverse(v.begin(),v.end());
+    std::sort(v.begin(),v.end(),std::greater<unsigned int>());
     double ret = 0; 
     unsigned int k = v[0];
-    for(size_t d=1;d<l;++d){
+    for(size_t d=1; d<l; ++d){
         ret  += sumLog(k+1,k+v[d])-sumLog(2,v[d]);
         //        cerr<<k<< " "<<v[d]<< " "<<ret<< " ";
         k += v[d];
