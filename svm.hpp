@@ -12,11 +12,12 @@ public:
   svm(size_t k, double lambda=1, double gamma = 1,
       unsigned int iter = 50, unsigned int _accIter = 0);
   virtual ~svm();
-  virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zALPHA)=0;
+  //  virtual double learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zALPHA)=0;
   virtual double learn_SDCA()=0;
   virtual double learn_acc_SDCA()=0;
 
   virtual double getGap()=0;
+  
   virtual void classify(matd &data,ivec &res)=0;
   virtual void classify(ivec_iter &itb,ivec_iter &ite,ivec &res)=0; // classify part of train data.
     
@@ -56,7 +57,9 @@ public:
 protected:
 
   void optimizeDual_SDCA(const Ref<const ArrayXd> &mu,double C,Ref<MatrixXd> a,size_t i,size_t curLabel);
+  double optimizeDual_SDCA(vec &mu,double C,vec &a);
   void project_SDCA(const Ref<const ArrayXd> &mu,Ref<ArrayXd> b);
+  double project_SDCA(vec &mu,vec &b);
   //    void optimizeDual_SDCA(ArrayXd &mu,double C,ArrayXd &a);
     
   unsigned int _iter; // number of iteration out loop

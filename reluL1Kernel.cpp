@@ -11,6 +11,29 @@ reluL1Kernel::reluL1Kernel(matd &data){
     _dataNorm(i) = _data.col(i).stableNorm();
   }
 }
+double reluL1Kernel::dot(size_t i, size_t j){
+  double prod = _data.col(j).dot(_data.col(i));
+  double nor = _dataNorm(i) * _dataNorm(j);
+  double angle = prod/nor;
+  angle = (angle > 1)?  1:angle;
+  angle = (angle <-1)? -1:angle;
+  double delta = nor*nor - prod*prod;
+  delta = (delta < 0)? 0:delta;
+  return (M_PI- acos(angle))* prod + sqrt(delta) ;
+
+}
+double reluL1Kernel::dot(vec & v, size_t j){
+  Map<VectorXd> vm(v.data(),_n,1);
+  double prod = vm.dot(_data.col(j));
+  double nor = vm.stableNorm() * _dataNorm(j);
+  double angle = prod/nor;
+  angle = (angle > 1)?  1:angle;
+  angle = (angle <-1)? -1:angle;
+  double delta = nor*nor - prod*prod;
+  delta = (delta < 0)? 0:delta;
+  return (M_PI- acos(angle))* prod + sqrt(delta) ;
+}
+  
 double reluL1Kernel::squaredNorm(size_t i){
   return _dataNorm(i)*_dataNorm(i);
 }

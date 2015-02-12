@@ -1,6 +1,3 @@
-#include <sstream>
-#include <fstream>
-#include <map>
 
 #include "usedFun.hpp"
 boost::mt19937 gen(time(NULL));//999);//

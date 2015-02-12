@@ -7,8 +7,11 @@
 class zeroOneRKernel : public Kernel{
 public:
   zeroOneRKernel(matd &data, ivec &hidden);
-    
+  double calc(double alpha,unsigned int l);
+  virtual double dot(size_t i, size_t j);
+  virtual double dot(vec &v, size_t j);    
   virtual double squaredNorm(size_t i);
+  
   void calc(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res,unsigned int l);
   //    void calc2(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res);
   virtual void dot(size_t i,Ref<VectorXd> res);

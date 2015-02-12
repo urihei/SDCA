@@ -69,7 +69,34 @@ zeroOneL2Kernel::zeroOneL2Kernel(matd &data, unsigned int hidden):_hidden(hidden
   // }
   //
 }
-    
+double zeroOneL2Kernel::calc(double alpha){
+  double res = 0;
+  alpha = (alpha < eps)? eps:alpha;
+  alpha = (alpha > 1-eps)? 1-eps:alpha;
+
+  double lAlpha = log(alpha);
+  double oMa = log(1 - alpha);
+  for(size_t i=0;i<=_hidden;++i){
+    res += exp(_preCalc[i]+i*lAlpha+(_hidden-i)*oMa);
+  }
+  return res /_norm;
+}
+double zeroOneL2Kernel::dot(size_t i, size_t j){
+  double angle = _data.col(j).dot(_data.col(i))/(_dataNorm(i) * _dataNorm(j));
+  angle = (angle > 1)?  1:angle;
+  angle = (angle <-1)? -1:angle;
+  return calc(OneDpi*acos(angle));
+}
+
+double zeroOneL2Kernel::dot(vec &v, size_t j){
+  Map<VectorXd> vm(v.data(),_n,1);
+  double vmNorm = vm.stableNorm();
+  double angle = vm.dot(_data.col(j))/( vmNorm * _dataNorm(j));
+  angle = (angle > 1)?  1:angle;
+  angle = (angle <-1)? -1:angle;
+  return calc(OneDpi*acos(angle));
+}
+
 double zeroOneL2Kernel::squaredNorm(size_t i){
   return 1;
 }

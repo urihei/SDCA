@@ -5,8 +5,15 @@ polyKernel::polyKernel(matd &data, double degree, double c):_degree(degree),_c(c
   fillMatrix(data,_data);
   _data.transposeInPlace();
   _p = _data.rows();
+  _n = _data.cols();
 }
-
+double polyKernel::dot(size_t i, size_t j){
+  return pow((_data.col(j)).dot(_data.col(i))+_c,_degree);
+}
+double polyKernel::dot(vec &v, size_t j){
+  Map<VectorXd> vm(v.data(),_n,1);
+  return pow(vm.dot(_data.col(j))+_c,_degree);
+}
 double polyKernel::squaredNorm(size_t i){
     return pow(_data.col(i).squaredNorm()+_c,_degree);
 }
@@ -27,9 +34,6 @@ void polyKernel::dot(const Ref<const VectorXd> &v,Ref<VectorXd> res){
     res =  ((_data.transpose()*v).array()+_c).pow(_degree);
 }
 
-size_t polyKernel::getN(){
-  return _data.cols();
-}
 void polyKernel::setDegree(double degree){
     _degree = degree;
 }

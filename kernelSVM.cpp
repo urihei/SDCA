@@ -103,19 +103,19 @@ void kernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
     res[i++] = (size_t) index;
   }
 }
-void kernelSVM::classify(const Ref <const MatrixXd> &data,ivec &res){
-    size_t n = data.cols();
-    VectorXd ya(_k);
-    VectorXd kerCol(_n);
-    MatrixXf::Index index;
+// void kernelSVM::classify(const Ref <const MatrixXd> &data,ivec &res){
+//     size_t n = data.cols();
+//     VectorXd ya(_k);
+//     VectorXd kerCol(_n);
+//     MatrixXf::Index index;
     
-    for(size_t i=0;i<n;++i){
-        _ker->dot(data.col(i),kerCol);
-        ya = _alpha * kerCol;
-        ya.maxCoeff(&index);
-        res[i] = (size_t) index;
-    }
-}
+//     for(size_t i=0;i<n;++i){
+//         _ker->dot(data.col(i),kerCol);
+//         ya = _alpha * kerCol;
+//         ya.maxCoeff(&index);
+//         res[i] = (size_t) index;
+//     }
+// }
 void kernelSVM::saveModel(FILE* pFile){
     saveModel(pFile,_ker->getName(),_alpha);
 }
