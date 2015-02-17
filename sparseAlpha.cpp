@@ -1,5 +1,6 @@
 #include <iostream>
 #include "sparseAlpha.hpp"
+#include <limits>
 
 sparseAlpha::sparseAlpha(size_t k, size_t p):_k(k),_p(p){
   for(size_t i=0; i<_k; ++i){
@@ -57,10 +58,13 @@ void sparseAlpha::remove(size_t row,size_t col){
   }
 }
 // preform res(k) = scalar * alpha(k,p) * vec(p)
-void sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vector<map<size_t,double>::iterator> & indx){
+// return the biggest index;
+size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vector<map<size_t,double>::iterator> & indx){
   //assum v.size(0 == map.size();
   res.resize(_k);
   vec vk(_p);
+  size_t big_index = _k+1;
+  double val = std::numeric_limits<double>::lowest(); 
   for(size_t i=0;i<_k;++i){
     res[i] = 0;
     ker->dot(col,_alpha[i].begin(),_alpha[i].end(),vk);
@@ -74,7 +78,12 @@ void sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vecto
       ind++;
     }
     res[i] *= scalar;
+    if(res[i] > val){
+      val = res[i];
+      big_index = i;
+    }
   }
+  return big_index;
 }
 void sparseAlpha::col(size_t row, vec & res) const{
 }

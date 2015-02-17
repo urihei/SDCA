@@ -21,7 +21,7 @@ public:
 
   void remove(size_t row,size_t col);
   // preform res(k) = scalar * alpha(k,p) * vec(p)
-  void vecMul(vec & res, double scalar,Kernel * ker, size_t col,
+  size_t vecMul(vec & res, double scalar,Kernel * ker, size_t col,
                            vector<map<size_t,double>::iterator> & indx);
   void col(size_t row, vec & res) const;
 

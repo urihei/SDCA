@@ -160,13 +160,14 @@ void sparseKernelSVM::classify(matd &data, ivec &res){
     size_t n = data.size();
     vec ya(_k);
     vec kerCol(_n);
+    vec empty;
     cerr<<"Start kernel classify"<<endl;
     for(size_t i=0;i<n;++i){
-        _ker->dot(data[i],kerCol);
-        ya = _alpha * kerCol;
-        vecMul(ya,1/_lambda,_ker,
-        ya.maxCoeff(&index);
-        res[i] = (size_t) index;
+      //_ker->dot(data[i],kerCol);
+      // ya = _alpha * kerCol;
+      // ya.maxCoeff(&index);
+      //  res[i] = (size_t) index;
+      res[i] = _alpha.vecMul(ya,1/_lambda,data[i],_ker,empty); //build a new function that recive vector and not column.
     }
     
 }
@@ -175,8 +176,7 @@ void sparseKernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
   if(res.size() != n){
     res.resize(n);
   }
-  VectorXd kerCol(_n);
-  MatrixXf::Index index;
+  vec kerCol(_n);
   size_t i =0;
   for(ivec_iter it =itb; it<ite;++it){
     _ker->dot(*it,kerCol);
