@@ -22,7 +22,8 @@ public:
   virtual void classify(ivec_iter &itb,ivec_iter &ite,ivec &res)=0; // classify part of train data.
     
   virtual void saveModel(FILE* pFile)=0;
-  virtual void saveModel(FILE* pFile, string kernel,mat &model);
+  virtual void saveModel(FILE* pFile, string kernel,const Ref<const MatrixXd> & model);
+  virtual void saveModel(FILE* pFile, string kernel,const matd & model);
 
   virtual void setParameter(matd &par) = 0;
 

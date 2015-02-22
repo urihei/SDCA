@@ -85,11 +85,84 @@ size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vec
   }
   return big_index;
 }
-void sparseAlpha::col(size_t row, vec & res) const{
+size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, vec & v){
+  //assum v.size(0 == map.size();
+  res.resize(_k);
+  vec vk(_p);
+  size_t big_index = _k+1;
+  double val = std::numeric_limits<double>::lowest(); 
+  for(size_t i=0;i<_k;++i){
+    res[i] = 0;
+    ker->dot(v,_alpha[i].begin(),_alpha[i].end(),vk);
+    size_t ind = 0;
+    for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
+      res[i] += vk[ind] * it->second;
+      ind++;
+    }
+    res[i] *= scalar;
+    if(res[i] > val){
+      val = res[i];
+      big_index = i;
+    }
+  }
+  return big_index;
 }
- void sparseAlpha::setK(size_t k){
-   _k = k;
- }
- void sparseAlpha::setP(size_t p){
-   _p =p;
- }
+
+void sparseAlpha::setK(size_t k){
+  _k = k;
+}
+void sparseAlpha::setP(size_t p){
+  _p = p;
+}
+void sparseAlpha::write(FILE* pFile){
+  for(size_t i=0;i<_k;++i){
+    for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
+      fprintf(pFile,"%lu %g\t",it->first,it->second);
+    }
+    fprintf(pFile,"\n");
+                
+  }
+}
+ //add two objects;
+void sparseAlpha::plus(sparseAlpha a){
+
+  for(size_t i=0;i<_k;++i){
+    myMapD tmp;
+    myMapD_iter tmp_it = tmp.begin();
+    map<size_t,double>::iterator ita = a._alpha[i].begin();
+    for(myMapD_iter it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
+      while(ita->first < it->first){
+        tmp_it = tmp.emplace_hint(tmp_it,ita->first,ita->second);
+        ita++;
+      }
+      if(ita->first == it->first){
+        it->second += ita->second;
+      }      
+    }
+    while(ita != a.alpha[i].end()){
+      tmp_it = tmp.emplace_hint(tmp_it,ita->first,ita->second);
+      ita++;
+    }
+    _alpha.insert(tmp.begin(),tmp.end());
+    map.clear();
+  }
+}
+
+double sparseAlpha::norm(Kernel* ker,vec & res){
+  res.resize(_k);
+  double val = 0;
+  for(size_t k=0;k<_k;++k){
+    res[k] = 0;
+    for(myMapD_iter it = _alpha[k].begin(); it != _alpha[k].end(); ++it){
+      
+      for(myMapD_iter it2 = _alpha[k].begin(); it2 != _alpha[k].end(); ++it2){
+        
+      }
+    }
+  }
+}
+//calc the norm with respect to kernel: |alpha^t K alpha |_1
+double sparseAlpha::norm(Kernel* ker){
+  vec tmp(_k);
+  return norm(ker,tmp); 
+}
