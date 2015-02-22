@@ -71,12 +71,14 @@ size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vec
     size_t ind = 0;
     for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
       if(it->first != col || indx.empty()){
+	fprintf(stderr,"%u vk %g alpha %g,\t",it->first,vk[ind], it->second);
         res[i] += vk[ind] * it->second;
       }else{
         indx[i] = it;
       }
       ind++;
     }
+    fprintf(stderr,"\n");
     res[i] *= scalar;
     if(res[i] > val){
       val = res[i];
@@ -114,24 +116,37 @@ void sparseAlpha::setK(size_t k){
 void sparseAlpha::setP(size_t p){
   _p = p;
 }
+string sparseAlpha::toString(){
+  string str;
+  for(size_t i=0;i<_k;++i){
+    char buff[10*_alpha[i].size()];
+    int s = 0;
+    for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
+      s += sprintf(buff+s,"%u %g\t",it->first,it->second);
+    }
+    sprintf(buff+s,"\n");
+    str += buff;
+  }
+  return str;
+}
 void sparseAlpha::write(FILE* pFile){
   for(size_t i=0;i<_k;++i){
     for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
-      fprintf(pFile,"%lu %g\t",it->first,it->second);
+      fprintf(pFile,"%u %g\t",it->first,it->second);
     }
     fprintf(pFile,"\n");
                 
   }
 }
  //add two objects;
-void sparseAlpha::plus(sparseAlpha a){
+void sparseAlpha::add(sparseAlpha a){
 
   for(size_t i=0;i<_k;++i){
     myMapD tmp;
     myMapD_iter tmp_it = tmp.begin();
     map<size_t,double>::iterator ita = a._alpha[i].begin();
     for(myMapD_iter it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
-      while(ita->first < it->first){
+      while(ita != a._alpha[i].end() && ita->first < it->first){
         tmp_it = tmp.emplace_hint(tmp_it,ita->first,ita->second);
         ita++;
       }
@@ -139,12 +154,13 @@ void sparseAlpha::plus(sparseAlpha a){
         it->second += ita->second;
       }      
     }
-    while(ita != a.alpha[i].end()){
+    while(ita != a._alpha[i].end()){
       tmp_it = tmp.emplace_hint(tmp_it,ita->first,ita->second);
       ita++;
     }
-    _alpha.insert(tmp.begin(),tmp.end());
-    map.clear();
+
+    _alpha[i].insert(tmp.begin(),tmp.end());
+    tmp.clear();
   }
 }
 
@@ -154,12 +170,15 @@ double sparseAlpha::norm(Kernel* ker,vec & res){
   for(size_t k=0;k<_k;++k){
     res[k] = 0;
     for(myMapD_iter it = _alpha[k].begin(); it != _alpha[k].end(); ++it){
-      
-      for(myMapD_iter it2 = _alpha[k].begin(); it2 != _alpha[k].end(); ++it2){
-        
+      // val =+ alpha(i)^2* K(i,i) - the diagonal
+      res[k] += it->second * it->second * ker->squaredNorm(it->first);
+      for(myMapD_iter it2 = _alpha[k].begin(); it2 != it; ++it2){
+        res[k] += it->second * it2->second * ker->dot(it->first,it2->first);
       }
     }
+    val += res[k];
   }
+  return val;
 }
 //calc the norm with respect to kernel: |alpha^t K alpha |_1
 double sparseAlpha::norm(Kernel* ker){

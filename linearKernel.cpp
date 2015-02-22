@@ -11,8 +11,8 @@ double linearKernel::dot(size_t i, size_t j){
   return _data.col(i).dot(_data.col(j));
 }
 double linearKernel::dot(vec &v, size_t j){
-    Map<VectorXd> vm(v.data(),_n,1);
-    return vm.dot(_data.col(j));
+  Map<VectorXd> vm(v.data(),v.size(),1);
+  return vm.dot(_data.col(j));
 }
 double linearKernel::squaredNorm(size_t i){
   return _data.col(i).squaredNorm();

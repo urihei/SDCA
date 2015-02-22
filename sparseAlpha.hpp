@@ -27,8 +27,10 @@ public:
   void setK(size_t k);
   void setP(size_t p);
 
-  void plus(sparseAlpha alpha); //add two objects;
+  void add(sparseAlpha alpha); //add two objects;
+  double norm(Kernel* ker,vec & res);
   double norm(Kernel* ker);//calc the norm with respect to kernel: |alpha^t K alpha |_1
+  string toString();
   void write(FILE* pFile);
 protected:
   size_t _k;

@@ -1,8 +1,49 @@
 #include <map>
 #include <stdlib.h> 
+#include "sparseAlpha.hpp"
+#include "linearKernel.hpp"
 #include "usedFun.hpp"
 
 int main(int argc,char ** argv){
+  sparseAlpha a1(3,10);
+  sparseAlpha a2(3,10);
+  
+  /* initialize random seed: */
+  srand (time(NULL));
+  for(size_t i=0; i<3;++i){
+    a1.insert(i,roll(9),roll(100));
+    a1.insert(i,roll(9),roll(100));
+    a2.insert(i,roll(9),roll(100));
+    a2.insert(i,roll(9),roll(100));
+  }
+  cout<<a1.toString()<<endl;
+  matd data(10);
+  for(size_t i=0;i<10;++i){
+    data[i].resize(5);
+    for(size_t j=0;j<5;++j){
+      data[i][j] = roll(100);
+      fprintf(stderr,"%g ",data[i][j]);
+    }
+    fprintf(stderr,"\n");
+  }
+  linearKernel *k = new linearKernel(data); 
+  vec res(3);
+  vector<map<size_t,double>::iterator> indx(3);
+  size_t res_val = a1.vecMul(res,1.0/8,k, 2,indx);
+  for(size_t i=0;i<3;++i){
+    fprintf(stderr,"%g ,",res[i]);
+  }
+  fprintf(stderr,"%u\n",res_val);
+  vec vv{0,0,2.0,0,-1};
+  size_t res_val2 = a1.vecMul(res, 1.0/8,k,vv);
+  for(size_t i=0;i<3;++i){
+    fprintf(stderr,"%g ,",res[i]);
+  }
+  fprintf(stderr,"\n%u\n",res_val2);
+  cout<<endl<<a2.toString()<<endl;
+  a1.add(a2);
+  cout<<endl<<a1.toString()<<endl;
+  exit(0);
   std::map<size_t,double> m;
 
   /* initialize random seed: */

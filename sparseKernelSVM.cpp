@@ -97,7 +97,7 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps){
   return gap;
 }
 
-double baseKernelSVM::learn_acc_SDCA(){
+double sparseKernelSVM::learn_acc_SDCA(){
   double kappa = 10/_usedN;//100*_lambda;
   double mu = _lambda/2;
   double rho = mu+kappa;
@@ -125,10 +125,10 @@ double baseKernelSVM::learn_acc_SDCA(){
   eta = eta /2;
 
   vector<map<size_t,double>::iterator> empty;
-  ivec resSample(_k);
+  vec resSample(_k);
   for(unsigned int t =1;t<=_accIter;++t){
     epsilon_t = learn_SDCA(alpha,pOld,eta/OnePetaSquare * xi);
-    _alpha.plus(alpha);//need to implement
+    _alpha.add(alpha);//need to implement
     for(size_t n=0;n<_usedN;++n){
       size_t col = _prmArray[n];
       _alpha.vecMul(resSample,1/(_lambda*_usedN),_ker,col,empty);
@@ -136,7 +136,7 @@ double baseKernelSVM::learn_acc_SDCA(){
         pOld[k][col] = (1+beta)*resSample[k] - beta*pOld[k][col];
       }
     }
-    //I am here
+  
     //zALPHA_t = zALPHA;
     //    zALPHA = (1+beta)*(zALPHA + alpha) - beta * _alpha;
     //_alpha = zALPHA_t+alpha;

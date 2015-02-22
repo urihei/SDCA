@@ -17,7 +17,6 @@ public:
   virtual double learn_SDCA(sparseAlpha &alpha,matd &zAlpha,double eps);
     
   virtual void classify(matd &data,ivec &res);
-  virtual void classify(const Ref <const MatrixXd> &data,ivec &res);
   virtual void classify(ivec_iter &itb,ivec_iter &ite,ivec &res);
 
   using svm::saveModel;
