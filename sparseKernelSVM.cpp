@@ -18,10 +18,8 @@ sparseKernelSVM::sparseKernelSVM(ivec &y,Kernel* ker, size_t k,
   }
 }
 double sparseKernelSVM::learn_SDCA(){
-  matd pOld(_k);
-  for(size_t k=0;k<_k;++k){
-    pOld[k] = vec(_n,0);
-  }
+  matd pOld(_k,vec(_n,0));
+  
   return learn_SDCA(_alpha,pOld,_eps);
 }
 double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps){
@@ -43,7 +41,8 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps){
 
   vector<map<size_t,double>::iterator> indx(_k);
   double gap = eps + 1;
-  for(unsigned int t=1;t <= _iter;++t){
+  unsigned int t=1;
+  for(;t <= _iter;++t){
     if((ind % _usedN) == 0){
       randperm(_usedN,prm,_prmArray);
       ind = 0;
@@ -54,6 +53,7 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps){
     //        _ker->dot(i,kerCol);
     //        alpha.col(i).setZero();
     // p = lambdaN * ((alpha+zALPHA) * kerCol);
+
     alpha.vecMul(p,lambdaN,_ker,i,indx);
     //p += pOld(:,i)
           
@@ -71,16 +71,21 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps){
         
     C = 1/(1+(gammaLambdan/_squaredNormData(i)));
 
-
     //note alpha is changing here
     double norm1A = optimizeDual_SDCA(mu,C,a);
-        
+
     for(size_t k=0;k<_k;++k){
-      indx[k]->second = -a[k];
+      double val = (k == curLabel)? norm1A:-a[k];
+      if(val != 0){
+        if(indx[k] != alpha.getEnd(k)){
+          indx[k]->second = val;
+        }else{
+          alpha.insert(k,i,val);
+        }
+      }
+            
     }
-    indx[curLabel]->second = norm1A;
-        
-    if( t % (_usedN* _checkGap) == 0){
+    if(t % (_usedN* _checkGap) == 0){
       gap = getGap(alpha,pOld);
             
     }
@@ -91,7 +96,7 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps){
     ind++;
   }
 
-  if(gap >eps){
+  if(gap >eps && (t % (_usedN* _checkGap) != 0)){
     gap = getGap(alpha,pOld);
   }
   return gap;
@@ -107,6 +112,8 @@ double sparseKernelSVM::learn_acc_SDCA(){
   //mat alpha(_k,_n);
   //  alpha.setZero();
   sparseAlpha alpha(_k,_usedN);
+  
+  sparseAlpha Zalpha(_k,_usedN);
   
   matd pOld(_k,vec(_usedN,0));
 
@@ -124,19 +131,20 @@ double sparseKernelSVM::learn_acc_SDCA(){
   double xi = OnePetaSquare * (1-_gamma/(2*(_k-1)));
   eta = eta /2;
 
-  vector<map<size_t,double>::iterator> empty;
+  vector<map<size_t,double>::iterator> empty(_k);
   vec resSample(_k);
   for(unsigned int t =1;t<=_accIter;++t){
     epsilon_t = learn_SDCA(alpha,pOld,eta/OnePetaSquare * xi);
-    _alpha.add(alpha);//need to implement
+    //wrong need to fix.
+    _alpha.add(alpha);
     for(size_t n=0;n<_usedN;++n){
       size_t col = _prmArray[n];
-      _alpha.vecMul(resSample,1/(_lambda*_usedN),_ker,col,empty);
+      _alpha.vecMul(resSample,1/(_lambda*_usedN),_ker,col,empty,true);
       for(size_t k=0; k<_k;++k){
         pOld[k][col] = (1+beta)*resSample[k] - beta*pOld[k][col];
       }
     }
-  
+    
     //zALPHA_t = zALPHA;
     //    zALPHA = (1+beta)*(zALPHA + alpha) - beta * _alpha;
     //_alpha = zALPHA_t+alpha;
@@ -163,7 +171,10 @@ double sparseKernelSVM::learn_acc_SDCA(){
   }
   return gap;
 }
-
+double sparseKernelSVM::getGap(){
+  matd tmp(_k,vec(_n,0));
+  return getGap(_alpha,tmp);
+}
 double sparseKernelSVM::getGap(sparseAlpha &alpha,matd &pOld){
   double pr = 0.0;
   double du = 0.0;
@@ -185,34 +196,40 @@ double sparseKernelSVM::getGap(sparseAlpha &alpha,matd &pOld){
       
     // getCol(i,kerCol);//_ker->dot(i,kerCol);
     // a = lambdaN * az * kerCol;
-    alpha.vecMul(a,lambdaN,_ker,i,indx);
+    alpha.vecMul(a,lambdaN,_ker,i,indx,true);
     double sumTmp = 0; //(a * alpha.col(i).array()).sum()
     double normSa = 0; //|a|^2 
     double norm1alpha = 0; //|alpha|_1 - c'*alpha
     double normSalpha = 0; //|alpha|^2
+    double aCurrent = a[currentLabel]+pOld[currentLabel][i];
     for(size_t k=0;k<_k;++k){
       a[k] += pOld[k][i];
-      sumTmp += a[k] * indx[k]->second;
-      //    a = (a - a(currentLabel)  + 1)/_gamma;
-      a[k] = (a[k]-a[currentLabel]+1)/_gamma;
+      if(indx[k] != alpha.getEnd(k)){
+        sumTmp += a[k] * indx[k]->second; // normPart += lambdaN*(a * alpha.col(i).array()).sum();
+        norm1alpha += indx[k]->second;
+        normSalpha += indx[k]->second*indx[k]->second;
+      }
+      a[k] = (a[k]-aCurrent+1)/_gamma;      //    a = (a - a(currentLabel)  + 1)/_gamma;
       normSa += a[k]*a[k];
-      norm1alpha += indx[k]->second;
-      normSalpha += indx[k]->second*indx[k]->second;
+      
     }
     normSa -= (1.0/_gamma) *(1.0/_gamma); // the value of a[currentLabel] needed to be removed.
+
+    double alphaAtLabel = 0;
+    if(indx[currentLabel] != alpha.getEnd(currentLabel)){
+      alphaAtLabel = indx[currentLabel]->second;
+    }
     
-    norm1alpha -= indx[currentLabel]->second;
+    norm1alpha -= alphaAtLabel;
     a[currentLabel] = 0;
      
     
     normPart += lambdaN*sumTmp;
-        
+
     //b = b - a;
     double normBs = project_SDCA(a,b);
-    
     pr += _gamma/2 * (normSa - normBs);
-    du -= norm1alpha + _gamma/2 *
-      (normSalpha - indx[currentLabel]->second * indx[currentLabel]->second );
+    du -= norm1alpha + _gamma/2 *(normSalpha - alphaAtLabel* alphaAtLabel );
   }
   pr = pr/_usedN+_lambda*normPart;
   du /= _usedN;
@@ -264,4 +281,15 @@ void sparseKernelSVM::saveModel(FILE* pFile){
 }
 void sparseKernelSVM::getCol(size_t i,Ref <VectorXd>  kerCol){
   _ker->dot(i,kerCol);
+}
+void sparseKernelSVM::init(){
+  _alpha.clear();
+}
+void sparseKernelSVM::setParameter(matd &par){
+  for(size_t i=0;i<_k;++i){
+    for(size_t j=0; j< par[i].size(); ++j){
+      if(par[i][j] != 0)
+        _alpha.insert(i,j,par[i][j]);
+    }
+  }
 }

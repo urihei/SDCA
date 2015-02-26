@@ -57,9 +57,12 @@ void sparseAlpha::remove(size_t row,size_t col){
     _alpha[row].erase(alphaIter);
   }
 }
+size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vector<map<size_t,double>::iterator> & indx){
+  return vecMul(res,scalar,ker,col,indx,false);
+}
 // preform res(k) = scalar * alpha(k,p) * vec(p)
 // return the biggest index;
-size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vector<map<size_t,double>::iterator> & indx){
+size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vector<map<size_t,double>::iterator> & indx,bool includeSelf){
   //assum v.size(0 == map.size();
   res.resize(_k);
   vec vk(_p);
@@ -69,16 +72,24 @@ size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vec
     res[i] = 0;
     ker->dot(col,_alpha[i].begin(),_alpha[i].end(),vk);
     size_t ind = 0;
+    bool foundIndx = false;
+    //    fprintf(stderr,"i:%zu:\t",i);
     for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
-      if(it->first != col || indx.empty()){
-	fprintf(stderr,"%u vk %g alpha %g,\t",it->first,vk[ind], it->second);
-        res[i] += vk[ind] * it->second;
-      }else{
+      if(it->first == col){
         indx[i] = it;
+        foundIndx = true;
+        if(includeSelf)
+          res[i] += vk[ind] * it->second;
+      }else{
+        res[i] += vk[ind] * it->second;
       }
+      
       ind++;
     }
-    fprintf(stderr,"\n");
+    if(!foundIndx){
+      indx[i] = _alpha[i].end();
+    }
+    //    fprintf(stderr,"\n");
     res[i] *= scalar;
     if(res[i] > val){
       val = res[i];
@@ -119,10 +130,10 @@ void sparseAlpha::setP(size_t p){
 string sparseAlpha::toString(){
   string str;
   for(size_t i=0;i<_k;++i){
-    char buff[10*_alpha[i].size()];
+    char buff[100*_alpha[i].size()];
     int s = 0;
     for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
-      s += sprintf(buff+s,"%u %g\t",it->first,it->second);
+      s += sprintf(buff+s,"%zu %g\t",it->first,it->second);
     }
     sprintf(buff+s,"\n");
     str += buff;
@@ -132,7 +143,7 @@ string sparseAlpha::toString(){
 void sparseAlpha::write(FILE* pFile){
   for(size_t i=0;i<_k;++i){
     for(map<size_t,double>::iterator it = _alpha[i].begin(); it != _alpha[i].end(); ++it){
-      fprintf(pFile,"%u %g\t",it->first,it->second);
+      fprintf(pFile,"%zu %g\t",it->first,it->second);
     }
     fprintf(pFile,"\n");
                 
@@ -184,4 +195,15 @@ double sparseAlpha::norm(Kernel* ker,vec & res){
 double sparseAlpha::norm(Kernel* ker){
   vec tmp(_k);
   return norm(ker,tmp); 
+}
+void sparseAlpha::clear(){
+  for(size_t k=0;k<_k;++k){
+    _alpha[k].clear();
+  }
+}
+bool sparseAlpha::isIn(size_t row, size_t col){
+  return _alpha[row].find(col) != _alpha[row].end();
+}
+myMapD_iter sparseAlpha::getEnd(size_t k){
+  return _alpha[k].end();
 }

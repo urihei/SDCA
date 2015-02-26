@@ -23,7 +23,12 @@ public:
   virtual void saveModel(FILE* pFile);
     
   virtual void getCol(size_t i,Ref<VectorXd> kerCol);
+  virtual double getGap();
   double getGap(sparseAlpha &alpha,matd &pOld);
+
+  virtual void init();
+  virtual void setParameter(matd &par);
+
 protected:
   sparseAlpha _alpha;
   Kernel* _ker;

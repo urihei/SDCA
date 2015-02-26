@@ -22,16 +22,21 @@ public:
   void remove(size_t row,size_t col);
   // preform res(k) = scalar * alpha(k,p) * vec(p)
   size_t vecMul(vec & res, double scalar,Kernel * ker, size_t col,
-                           vector<map<size_t,double>::iterator> & indx);
+                vector<map<size_t,double>::iterator> & indx);
+  size_t vecMul(vec & res, double scalar,Kernel * ker, size_t col,
+                vector<map<size_t,double>::iterator> & indx,bool includeSelf);
   size_t vecMul(vec & res, double scalar,Kernel * ker, vec & v);
   void setK(size_t k);
   void setP(size_t p);
-
+  bool isIn(size_t row, size_t col);
+  myMapD_iter getEnd(size_t k);
+ 
   void add(sparseAlpha alpha); //add two objects;
   double norm(Kernel* ker,vec & res);
   double norm(Kernel* ker);//calc the norm with respect to kernel: |alpha^t K alpha |_1
   string toString();
   void write(FILE* pFile);
+  void clear();
 protected:
   size_t _k;
   size_t _p;

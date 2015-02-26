@@ -105,7 +105,6 @@ double svm::optimizeDual_SDCA(vec &mu,double C,vec &a){
   //
   size_t indF = 0;
   size_t indJ = _k+1;
-        
   while((indF<_k-1) &&((normOne[indF] < z[indF]) || (normOne[indF] > z[indF+1]))){
     //finding the J index (for the case there is no index F)
     if(indJ == _k+1 && z[indF] ==1){
@@ -119,7 +118,8 @@ double svm::optimizeDual_SDCA(vec &mu,double C,vec &a){
     }
     indF++;
   }
-
+  //  cerr<<"Before if: indF "<< indF<<" indJ "<<indJ<<endl;
+    
   if(indF >= _k){
     double divConst = (1-mub[indJ])/(indJ+1);
     double aMmSn = 0;
@@ -215,10 +215,12 @@ double svm::project_SDCA(vec &mu,vec &b){
   }
   
   if(norm1muh <= 1){
+    double normB = 0;
     for(size_t k=0;k<_k;++k){
-      b[k] = muh[k];
+      b[k] = muh[k]-mu[k];
+      normB += b[k]*b[k];
     } 
-    return norm1muh;
+    return normB;
   }
   
   sort(muh.begin(),muh.end(),std::greater<double>());
