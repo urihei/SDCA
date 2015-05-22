@@ -60,7 +60,7 @@ double zeroOneRKernel::calc(double alpha,unsigned int l){
   if(l==0){
     return 1-alpha;
   }
-  calc(alpha,l-1);
+  alpha = calc(alpha,l-1);
   alpha = (alpha < eps)? eps:alpha;
   alpha = (alpha > 1-eps)? 1-eps:alpha;
 
@@ -147,9 +147,9 @@ size_t zeroOneRKernel::getN(){
   return _n;
 }
 string zeroOneRKernel::getName(){
-  string st = "zeroOneRKernel\t"+_l;
+  string st = "ZeroOneR\t"+to_string(_l);
   for(size_t l=0;l<_l;++l){
-    st += "\t"+_hidden[l];
+    st += "\t"+to_string(_hidden[l]);
   }
   return st;
 }

@@ -17,4 +17,6 @@ double sumLog(unsigned int s, unsigned int e);
 unsigned long long int multinomial(vector <unsigned int> &v);
 double logMultinomial(vector <unsigned int> &v);
 void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_map);
+double AddNormAsFeature(matd &data);
+double calcNormFeature(double squeredNorm,double max_norm);
 #endif

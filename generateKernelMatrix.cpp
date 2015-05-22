@@ -16,6 +16,12 @@
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
+#include "zeroOneRKernel.hpp"
+#include "zeroOneRNormKernel.hpp"
+#include "zeroOneRBiasKernel.hpp"
+#include "saulZeroKernel.hpp"
+#include "saulOneKernel.hpp"
+#include "linearKernel.hpp"
 
 void printUsage(char* ex){
   cerr<<ex<<"\t input_file out_file"<<endl;
@@ -38,6 +44,10 @@ int main(int argc,char ** argv){
   double degree = 2;//Poly
   double c = 1; //Poly
   unsigned int hidden = 5;
+  unsigned int l = 0;
+  ivec hidden_layer {1,20,10};
+  vec bias {1.0,1.0,1.0};
+  
   for(int i=3;i<argc; i+= 2){
     bool rec = false;
     if(strcmp("-k",argv[i])==0){
@@ -60,11 +70,36 @@ int main(int argc,char ** argv){
       hidden  = atoi(argv[i+1]);
       rec = true;
     }
+    if(strcmp("-hidden_layer",argv[i])==0){
+      stringstream ss(argv[i+1]);
+      string item;
+      hidden_layer.clear();
+      hidden_layer.push_back(1);
+      getline(ss,item,'-');
+      while(getline(ss,item,'-')){
+        hidden_layer.push_back(atoi(item.c_str()));
+      }
+      rec = true;
+    }
+    if(strcmp("-bias",argv[i])==0){
+      stringstream ss(argv[i+1]);
+      bias.clear();
+      string item;
+      while(getline(ss,item,'-')){
+        bias.push_back(stod(item));
+      }
+      rec = true;
+    }      
+    if(strcmp("-l",argv[i])==0){
+      l  = atoi(argv[i+1]);
+      rec = true;
+    }
     if(! rec){
       cerr<<"option "<<argv[i]<<" is not recognized"<<endl;
       printUsage(argv[0]);
     }
   }
+  
   matd data_t;
   ivec y_t;
   vector<int> label_map;
@@ -85,6 +120,21 @@ int main(int argc,char ** argv){
   }
   if(kernel_type == "ZeroOneL2"){
                 ker = new zeroOneL2Kernel(data_t,hidden);
+  }
+  if(kernel_type == "ZeroOneR"){
+    ker = new zeroOneRKernel(data_t,hidden_layer);
+  }
+  if(kernel_type == "ZeroOneRNorm"){
+    ker = new zeroOneRNormKernel(data_t,hidden_layer);
+  }
+  if(kernel_type == "ZeroOneRBias"){
+    ker = new zeroOneRBiasKernel(data_t,hidden_layer,bias);
+  }
+  if(kernel_type == "saulZero"){
+        ker = new saulZeroKernel(data_t,l);
+  }
+  if(kernel_type == "saulOne"){
+    ker = new saulOneKernel(data_t,l);
   }
   if(ker==NULL){
     cerr<<"Unknown kernel: "<<kernel_type<<endl;

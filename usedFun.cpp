@@ -1,12 +1,14 @@
-
 #include "usedFun.hpp"
-boost::mt19937 gen(999);//time(NULL));//
+
+boost::mt19937 gen(999);
+
 //numbers in [0,d] includ both numbers
 int roll(unsigned int d){
-    boost::random::uniform_int_distribution<> dist(0, d);
-    return  dist(gen);
+  gen.seed(time(NULL));//999);//
+  boost::random::uniform_int_distribution<> dist(0, d);
+  return  dist(gen);
 }
-    
+
 void randperm(unsigned int n,ivec &arr, ivec &prePrm){
     arr[0] = prePrm[0];
     for(size_t i =1; i<n;i++){
@@ -140,4 +142,26 @@ void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_m
         label_map[it->second] = it->first;
     }
     myfile.close();
+}
+double calcNormFeature(double squeredNorm,double max_norm){
+  return 1 - squeredNorm/max_norm;
+}
+double AddNormAsFeature(matd &data){
+
+  double max_norm = -1;
+  size_t N =  data.size();
+  vec norm(N);
+  
+  for(size_t i=0; i<N; ++i){
+    norm[i] = 0;
+    for(size_t j=0; j< data[i].size(); ++j)
+      norm[i] += data[i][j] * data[i][j];
+
+    //norm[i] = sqrt(norm[i]);
+    max_norm = (norm[i] > max_norm)? norm[i]:max_norm;
+  }
+  for(size_t i=0; i<N;++i){
+    data[i].push_back(calcNormFeature(norm[i],max_norm));
+  }
+  return max_norm;
 }

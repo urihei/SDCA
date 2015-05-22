@@ -14,8 +14,9 @@ public:
   virtual double learn_SDCA();
   virtual double learn_acc_SDCA();
   
-  virtual double learn_SDCA(sparseAlpha &alpha,matd &zAlpha,double eps);
-    
+  virtual double learn_SDCA(sparseAlpha &alpha,matd &zMat,double eps);
+  virtual double learn_SDCA(sparseAlpha &alpha,matd &zMat,double eps, matd& cMat);
+  
   virtual void classify(matd &data,ivec &res);
   virtual void classify(ivec_iter &itb,ivec_iter &ite,ivec &res);
 
@@ -24,7 +25,7 @@ public:
     
   virtual void getCol(size_t i,Ref<VectorXd> kerCol);
   virtual double getGap();
-  double getGap(sparseAlpha &alpha,matd &pOld);
+  double getGap(sparseAlpha &alpha,matd &pOld,matd & res);
 
   virtual void init();
   virtual void setParameter(matd &par);

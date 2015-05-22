@@ -18,6 +18,12 @@
 #include "polyKernel.hpp"
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
+#include "zeroOneL2Kernel.hpp"
+#include "zeroOneRKernel.hpp"
+#include "zeroOneRBiasKernel.hpp"
+#include "saulZeroKernel.hpp"
+#include "saulOneKernel.hpp"
+
 //#include "linearKernel.hpp"
 
 
@@ -135,6 +141,42 @@ svm* ReadModel(string modelFile,Kernel* &ker,int argc ,char** argv,vector<int> &
             }
             if(kernel_type == "ReluL1"){
                 ker = new reluL1Kernel(data_t);
+            }
+            if(kernel_type == "ZeroOneL2"){
+              unsigned int hidden;
+              iss >> hidden;
+              ker = new zeroOneL2Kernel(data_t,hidden);
+            }
+            if(kernel_type == "ZeroOneR"){
+              size_t l;
+              iss >> l;
+              ivec hidden_layer(l);
+              for(size_t ll=0; ll<l;++ll)
+                iss >> hidden_layer[ll];
+              
+              ker = new zeroOneRKernel(data_t,hidden_layer);
+            }
+            if(kernel_type == "ZeroOneRBias"){
+              size_t l;
+              iss >> l;
+              cerr<<"L:"<<l<<"\t";
+              ivec hidden_layer(l);
+              for(size_t ll=0; ll<l;++ll)
+                iss >> hidden_layer[ll];
+              vec bias(l);
+              for(size_t ll=0; ll<l;++ll)
+                iss >> bias[ll];
+              ker = new zeroOneRBiasKernel(data_t,hidden_layer,bias);
+            }
+            if(kernel_type == "saulZero"){
+              size_t l;
+              iss >> l;              
+              ker = new saulZeroKernel(data_t,l);
+            }
+            if(kernel_type == "saulOne"){
+              size_t l;
+              iss >> l;              
+              ker = new saulOneKernel(data_t,l);
             }
             if(ker==NULL){
                 cerr<<"Unknown kernel: "<<kernel_type<<endl;

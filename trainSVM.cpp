@@ -20,6 +20,8 @@
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
 #include "zeroOneRKernel.hpp"
+#include "zeroOneRNormKernel.hpp"
+#include "zeroOneRBiasKernel.hpp"
 #include "saulZeroKernel.hpp"
 #include "saulOneKernel.hpp"
 #include "linearKernel.hpp"
@@ -55,7 +57,7 @@ double findLambda(svm* sv,unsigned int folds,
     cerr<<"LM: "<<lm<<" "<<lambda<<"\t";
     sv->setLambda(lambda);
     unsigned int  err =0; //counter to validation errors.
-    unsigned int tr_err = 0; //counter to train errors
+    //    unsigned int tr_err = 0; //counter to train errors
     for(size_t i=0;i<folds; ++i){
        //we start over from scratch so the alpha will be zero on the validation set.
       sv->init();
@@ -81,6 +83,7 @@ double findLambda(svm* sv,unsigned int folds,
         }
       }
       //begin to remove
+      /*
       //testing on the train.
       itb = sv->getPrmArrayBegin();
       ite = sv->getPrmArrayEnd() - test_size;
@@ -91,6 +94,7 @@ double findLambda(svm* sv,unsigned int folds,
           tr_err++;
         }
       }
+      */
       //end to remove
       //shifting the usedData such we will use
       // another part on the data as validation set
@@ -102,10 +106,10 @@ double findLambda(svm* sv,unsigned int folds,
       best_lambda = lambda;
     }
     lambda *= step;//advance the lambda
-    cerr<<"Train err\t"<<((tr_err+0.0)/(train_size*folds))
-        <<"\tTest Error\t"<<((err+0.0)/(test_size*folds))<<endl;
+    //    cerr<<"Train err\t"<<((tr_err+0.0)/(train_size*folds))<<"\t";
+    cerr<<"Test Error\t"<<((err+0.0)/(test_size*folds))<<endl;
   }
-  *validation_err = best_res;
+  *validation_err = best_res/(test_size*folds);
   return best_lambda;
 }
 
@@ -119,7 +123,7 @@ void printUsage(char* ex){
   cerr<<"\t"<<"-k KernelType[Linear|preCalcKernel|RBF|Poly|ZeroOneL1|ReluL1|ZeroOneL2|ZeroOneR|saulZero|saulOne]"<<"\t default Linear" <<" The kernel type use in svm"<<endl;;
   cerr<<"\t"<<"-lambda value[double]"<<"\t default 1"<<" The l2 regulation parameter"<<endl; ;
   cerr<<"\t"<<"-gamma value[double]"<<"\t default 0.1"<<" The hinge loss smoothing parameter "<<endl;
-  cerr<<"\t"<<"-lambda_find [0|1]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
+  cerr<<"\t"<<"-lambda_find [unsigned int]"<<"defult 0"<<"To find the best lambda using 5 fold cross validation"<<endl;
   cerr<<"\t"<<"-iter value[double]"<<"\t default [100|5]"<<" The maximum number of times the whole data is iterated in each SDCA run(if accelerated is used the defualt is 5)"<<endl;
   cerr<<"\t"<<"-iter_acc value[unsigned int]"<<"\t default [0]"<<" The maximum number of times the acclerated algorithm is repeated"<<endl;
 
@@ -127,14 +131,16 @@ void printUsage(char* ex){
   cerr<<"\t"<<"-check_gap_acc value[unsigned int]"<<"\t default [5]"<<" The frequency the stoping condition is checked in acclerated SDCA"<<endl;
 
   cerr<<"\t"<<"-epsilon value[double]"<<"\t default [1e-3]"<<" The requested accuracy "<<endl;
-    
+  cerr<<"\t"<<"-validation  value[unsigned int]"<<"\t default [0]"<<"Cross validation value - the number fo parts to divide the train set. 0 mean do not run this"<<endl;
+
   cerr<<"\t Kernel Option:"<<endl;
   cerr<<"\t\t"<<"-preCalc [0|1]"<<"\t default 0"<<" 1 - For calculate the kernel before optimization, 0 - for on the fly calculation."<<endl;  
   cerr<<"\t\t"<<"-sigma value[double]"<<"\t default 1"<<" Sigam for the RBF kernel"<<endl;
   cerr<<"\t\t"<<"-degree value[double]"<<"\t default 2"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
   cerr<<"\t\t"<<"-c value[double]"<<"\t default 1"<<" Degree for the polynomial kernel (<x,y>+c)^degree"<<endl;
   cerr<<"\t\t"<<"-hidden value[unsigned int]"<<"\t default 20"<<" Number of hidden units in the ZeroOneL2 kernel"<<endl;
-  cerr<<"\t\t"<<"-hidden_layer value'-'value'-'...'-'value[unsigned int vector]"<<"\t default [20-10]"<<" Number of hidden units in each layer of the ZeroOneR kernel"<<endl;
+  cerr<<"\t\t"<<"-hidden_layer value'-'value'-'...'-'value[unsigned int vector]"<<"\t default [20-10]"<<" Number of hidden units in each layer of the ZeroOneR* kernels"<<endl;
+  cerr<<"\t\t"<<"-bias value'-'value'-'...'-'value[double vector]"<<"\t default [1-1-1]"<<" The bias at each layer"<<endl;
   cerr<<"\t\t"<<"-l value[unsigned int]"<<"\t default 0"<<" Number of layers in Saul kernels"<<endl;
   exit(1);
 }
@@ -152,14 +158,15 @@ int main(int argc,char ** argv){
   string kernel_type = "Linear";
   double lambda = 1;
   double gamma = 0.1;
-  bool lambda_find = false;
-    
+  unsigned int  lambda_find = 0;
+  bool insertLambda = false;
+  
   double iter = 100;
   size_t acc_iter = 0;
 
   unsigned int checkGap = 5;
   unsigned int checkGapAcc = 5;
-
+  unsigned int validate = 0;
   double epsilon = 1e-3;
 
   bool preCalc = false;
@@ -169,6 +176,7 @@ int main(int argc,char ** argv){
   unsigned int l = 0;
   unsigned int hidden = 5;
   ivec hidden_layer {1,20,10};
+  vec bias {1.0,1.0,1.0};
     
   for(int i=2;i<argc; i+= 2){
     bool rec = false;
@@ -190,6 +198,7 @@ int main(int argc,char ** argv){
     }
     if(strcmp("-lambda",argv[i])==0){
       lambda  = atof(argv[i+1]);
+      insertLambda = true;
       rec = true;
     }
     if(strcmp("-gamma",argv[i])==0){
@@ -197,7 +206,7 @@ int main(int argc,char ** argv){
       rec = true;
     }
     if(strcmp("-lambda_find",argv[i])==0){
-      lambda_find = argv[i+1][0] == '1';
+      lambda_find = atoi(argv[i+1]) ;
       rec = true;
     }
     if(strcmp("-iter",argv[i])==0){
@@ -224,7 +233,10 @@ int main(int argc,char ** argv){
       preCalc = argv[i+1][0] == '1';
       rec = true;
     }
-        
+    if(strcmp("-validation",argv[i])==0){
+      validate = atoi(argv[i+1]);;
+      rec = true;
+    }
     if(strcmp("-sigma",argv[i])==0){
       sigma  = atof(argv[i+1]);
       rec = true;
@@ -243,15 +255,24 @@ int main(int argc,char ** argv){
     }
     if(strcmp("-hidden_layer",argv[i])==0){
       stringstream ss(argv[i+1]);
+      string item;
       hidden_layer.clear();
       hidden_layer.push_back(1);
-      string item;
+      getline(ss,item,'-');
       while(getline(ss,item,'-')){
         hidden_layer.push_back(atoi(item.c_str()));
       }
       rec = true;
     }
-        
+    if(strcmp("-bias",argv[i])==0){
+      stringstream ss(argv[i+1]);
+      bias.clear();
+      string item;
+      while(getline(ss,item,'-')){
+        bias.push_back(stod(item));
+      }
+      rec = true;
+    }   
     if(strcmp("-l",argv[i])==0){
       l  = atoi(argv[i+1]);
       rec = true;
@@ -300,9 +321,13 @@ int main(int argc,char ** argv){
         ker = new zeroOneL2Kernel(data_t,hidden);
       }
       if(kernel_type == "ZeroOneR"){
-        cerr<<"Starting buliding the kernel"<<endl;
         ker = new zeroOneRKernel(data_t,hidden_layer);
-        cerr<<"Finish buliding the kernel"<<endl;
+      }
+      if(kernel_type == "ZeroOneRNorm"){
+        ker = new zeroOneRNormKernel(data_t,hidden_layer);
+      }
+      if(kernel_type == "ZeroOneRBias"){
+        ker = new zeroOneRBiasKernel(data_t,hidden_layer,bias);
       }
       if(kernel_type == "saulZero"){
         ker = new saulZeroKernel(data_t,l);
@@ -333,17 +358,71 @@ int main(int argc,char ** argv){
 
   if(lambda_find){
     double val_err;
-    double best_lambda = findLambda(sv,6,-7,6,7 ,label_map,y_t,&val_err);
-    double logLambda = log10(best_lambda);
-    best_lambda = findLambda(sv,6,logLambda-2,logLambda+2, 5,label_map,y_t,&val_err);
+    double logLambda;
+    double le = -6;
+    double he = 2;
+    unsigned int div = 7;
+    double ed = 2.0;
+    if(insertLambda){
+      logLambda = log10(lambda);
+      le = logLambda - ed;
+      he = logLambda + ed;
+      ed /= 2;
+      div = 5;
+    } 
+    double best_lambda = findLambda(sv,6,le,he,div ,label_map,y_t,&val_err);
     logLambda = log10(best_lambda);
-    best_lambda = findLambda(sv,6,logLambda-1,logLambda+1, 5,label_map,y_t,&val_err);
-    cout<<"Lambda:\t"<<best_lambda<<"\tErr\t"<<val_err<<endl;
+    for(size_t t=0;t<lambda_find;++t){
+      best_lambda = findLambda(sv,6,logLambda-ed,logLambda+ed, 5,label_map,y_t,&val_err);
+      logLambda = log10(best_lambda);
+      ed /= 2;
+    }
+    cout<<"Lambda:\t"<<best_lambda<<endl;
+    cout<<"Validation Err\t"<<val_err<<endl;
     sv->setLambda(best_lambda);
     sv->setUsedN(n);
     sv->setVerbose(verbose);
   }
-  
+  if(validate > 1 && !lambda_find){  
+    size_t train_size = (validate - 1.0)/validate * n;
+    size_t test_size = n-train_size;
+    ivec res(n);
+    size_t err = 0;
+    sv->setVerbose(false);
+    sv->setUsedN(train_size);
+    sv->samplePrm();
+    cerr<<"Starting validation:\t";
+    for(size_t i=0;i<validate; ++i){
+      cerr<<i<<"\t";
+       //we start over from scratch so the alpha will be zero on the validation set.
+      sv->init();
+   
+      //do we use accelerated SGD 
+      if(sv->getAccIter() >0){
+        sv->learn_acc_SDCA();
+      }else{
+        sv->learn_SDCA();
+      }
+      //testing this lambda
+      ivec_iter itb = sv->getPrmArrayBegin()+train_size;
+      ivec_iter ite = sv->getPrmArrayEnd();
+      sv->classify(itb,ite,res);
+      //compare the results.
+      size_t j=0;
+      for(ivec_iter it =itb; it<ite;++it){
+        if(res[j++] != y_t[*it]){
+          err++;
+        }
+      }
+      //shifting the usedData such we will use
+      // another part on the data as validation set
+      sv->shiftPrm(test_size);
+    }
+    cerr<<endl;
+    sv->setUsedN(n);
+    sv->setVerbose(verbose);
+    cout<<"Validation Err\t"<<(err+0.0)/(test_size*validate)<<endl;
+  }
   start_time = time(NULL);
   if(acc_iter >0){
     sv->learn_acc_SDCA();
@@ -364,7 +443,7 @@ int main(int argc,char ** argv){
       err++;
     }
   }
-  cerr<<"Train Err "<<err<<endl;
+  cout<<"Train Err\t"<<(err+0.0)/j<<endl;
   //
   if(model_file != ""){
     FILE* pFile = fopen(model_file.c_str(),"w");

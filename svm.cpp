@@ -270,7 +270,6 @@ void svm::project_SDCA(const Ref<const ArrayXd> &mu,Ref<ArrayXd> b){
 }
 
 void svm::saveModel(FILE* pFile, string kernel,const Ref<const MatrixXd> &model){
-    
   fprintf(pFile,"%s\t%g\t%g\n",kernel.c_str(),_lambda,_gamma);
   for(int i=0;i<model.rows();++i){
     for(int j=0; j<model.cols();++j){
@@ -281,7 +280,6 @@ void svm::saveModel(FILE* pFile, string kernel,const Ref<const MatrixXd> &model)
     
 }
 void svm::saveModel(FILE* pFile, string kernel,const matd &model){
-    
   fprintf(pFile,"%s\t%g\t%g\n",kernel.c_str(),_lambda,_gamma);
   for(size_t i=0;i<model.size();++i){
     for(size_t j=0; j<model[i].size();++j){
