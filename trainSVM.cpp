@@ -20,7 +20,7 @@
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
 #include "zeroOneRKernel.hpp"
-#include "zeroOneRNormKernel.hpp"
+//#include "zeroOneRNormKernel.hpp"
 #include "zeroOneRBiasKernel.hpp"
 #include "saulZeroKernel.hpp"
 #include "saulOneKernel.hpp"
