@@ -17,9 +17,9 @@ kernelSVM::kernelSVM(ivec &y,Kernel* ker, size_t k,
     }
 }
 double kernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd> &zALPHA,double eps){
-    double lambdaN = 1/(_n*_lambda);
+    double lambdaN = 1/(_usedN*_lambda);
     
-    double gammaLambdan = _gamma*_n*_lambda;
+    double gammaLambdan = _gamma*_usedN*_lambda;
 
 
     double C;

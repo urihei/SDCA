@@ -38,9 +38,9 @@ preKernelSVM::preKernelSVM(ivec &y,Kernel* kernel, size_t k,
     _kerFun = kernel;
 }
 double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &zALPHA, double eps){
-    double lambdaN = 1/(_n*_lambda);
+    double lambdaN = 1/(_usedN*_lambda);
     
-    double gammaLambdan = _gamma*_n*_lambda;
+    double gammaLambdan = _gamma*_usedN*_lambda;
 
 
     double C;
@@ -135,7 +135,7 @@ void preKernelSVM::classify(matd &data, ivec &res){
 void preKernelSVM::classify( const Ref<const MatrixXd> &mData, ivec &res){
     size_t n = mData.cols();
     MatrixXd ya(_k,n);
-    ya = 1/(_lambda*_n) * (_alpha * mData);
+    ya = 1/(_lambda*_usedN) * (_alpha * mData);
     MatrixXf::Index index;
     for(size_t i=0;i<n;i++){
         ya.col(i).maxCoeff(&index);

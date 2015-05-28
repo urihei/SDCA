@@ -6,6 +6,7 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
+void initRand();
 int roll(unsigned int d);
 void randperm(unsigned int n,ivec &arr,ivec &prePrm);
 void cumsum(double* a, size_t len,double* b);

@@ -9,6 +9,7 @@ svm::svm(size_t k,double lambda, double gamma,unsigned int iter, unsigned int ac
   _checkGap = 5;
   _checkGapAcc = 5;
   _verbose = true;
+  initRand();
 }
 svm::~svm(){};
 void svm::setIter(unsigned int iter){

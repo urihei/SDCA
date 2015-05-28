@@ -7,7 +7,7 @@ double baseKernelSVM::getGap(const Ref <const MatrixXd> &alpha,const Ref <const 
   double pr = 0.0;
   double du = 0.0;
 
-  double lambdaN  = 1/(_lambda * _n);
+  double lambdaN  = 1/(_lambda * _usedN);
 
   mat az = zALPHA + alpha;
   ArrayXd a(_k);
@@ -35,8 +35,8 @@ double baseKernelSVM::getGap(const Ref <const MatrixXd> &alpha,const Ref <const 
     du -= alpha.col(i).sum() - alpha(currentLabel,i) +
       _gamma/2 * (alpha.col(i).squaredNorm() - alpha(currentLabel,i)*alpha(currentLabel,i));
   }
-  pr = pr/_n+_lambda*normPart;
-  du /= _n;
+  pr = pr/_usedN+_lambda*normPart;
+  du /= _usedN;
   double gap = pr - du;
   if(_verbose)
     fprintf(stderr,"primal %g\t dual %g\t Gap %g \n",pr,du,gap);
@@ -60,7 +60,7 @@ double baseKernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd
 
 
 double baseKernelSVM::learn_acc_SDCA(){
-  double kappa = 10/_n;//100*_lambda;
+  double kappa = 10/_usedN;//100*_lambda;
   double mu = _lambda/2;
   double rho = mu+kappa;
   double eta = sqrt(mu/rho);

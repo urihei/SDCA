@@ -32,9 +32,9 @@ double linearSVM::learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW)
 double linearSVM::learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW,double eps){
 
 
-    double lambdaN = 1/(_n*_lambda);
+    double lambdaN = 1/(_usedN*_lambda);
 
-    double gammaLambdan = _gamma*_n*_lambda;
+    double gammaLambdan = _gamma*_usedN*_lambda;
 
 
     ivec prm(_usedN);
@@ -56,7 +56,13 @@ double linearSVM::learn_SDCA(Ref<MatrixXd> alpha, const Ref<const MatrixXd> &zW,
         if((ind % _usedN) == 0){
             randperm(_usedN,prm,_prmArray);
             ind = 0;
+            // cerr<<endl;
+            // for(size_t i=0; i<_usedN;++i){
+            //   cerr<<prm[i]<<" ";
+            // }
+            // cerr<<endl;
         }
+        
         size_t i = prm[ind];
         size_t curLabel = _y[i];
 
@@ -153,23 +159,23 @@ double linearSVM::getGap(const Ref<const MatrixXd> &alpha, const Ref<const Matri
     ArrayXd b(_k);
     
     for(size_t ii = 0; ii<_usedN;++ii){
-      size_t i= _prmArray[i];
-        size_t currentLabel = _y[i];
-
-        a = _W.transpose() * _data.col(i);
-        a = (a - a(currentLabel) +1)/_gamma;
-        a(currentLabel) = 0;
-
-        project_SDCA(a,b);
-
+      size_t i= _prmArray[ii];
+      size_t currentLabel = _y[i];
+      
+      a = _W.transpose() * _data.col(i);
+      a = (a - a(currentLabel) +1)/_gamma;
+      a(currentLabel) = 0;
+      
+      project_SDCA(a,b);
+      
         b = b - a;
         pr += _gamma/2 * (a.matrix().squaredNorm() - b.matrix().squaredNorm());
         du -= alpha.col(i).sum() - alpha(currentLabel,i) +
-            _gamma/2 * (alpha.col(i).squaredNorm() - alpha(currentLabel,i)*alpha(currentLabel,i));
-
+          _gamma/2 * (alpha.col(i).squaredNorm() - alpha(currentLabel,i)*alpha(currentLabel,i));
+        
     }
-    pr = pr/_n + _lambda * (_W.array() * (_W.array() - zW.array())).sum();
-    du /= _n;
+    pr = pr/_usedN + _lambda * (_W.array() * (_W.array() - zW.array())).sum();
+    du /= _usedN;
     double gap = pr - du;
     if(_verbose)
         cerr<< "primal: "<<pr<<"\t dual: "<<du<<"\t Gap: "<<gap<<endl;
@@ -178,7 +184,7 @@ double linearSVM::getGap(const Ref<const MatrixXd> &alpha, const Ref<const Matri
 double linearSVM::getGap(){
     mat zW(_p,_k);
     zW.setZero();
-    mat alpha(_k,_n);
+    mat alpha(_k,_usedN);
     alpha.setZero();
     return getGap(alpha,zW);
 }

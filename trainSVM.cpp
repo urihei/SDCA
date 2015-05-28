@@ -67,7 +67,9 @@ double findLambda(svm* sv,unsigned int folds,
       if(sv->getAccIter() >0){
         gap = sv->learn_acc_SDCA();
       }else{
+        cerr<<"not acc ";
         gap = sv->learn_SDCA();
+        exit(0);
       }
       cerr<<i<<": "<<gap<<"\t";
 

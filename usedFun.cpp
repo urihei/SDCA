@@ -1,10 +1,12 @@
 #include "usedFun.hpp"
 
 boost::mt19937 gen(999);
-
+void initRand(){
+  gen.seed(time(NULL));//999);//
+}
+  
 //numbers in [0,d] includ both numbers
 int roll(unsigned int d){
-  gen.seed(time(NULL));//999);//
   boost::random::uniform_int_distribution<> dist(0, d);
   return  dist(gen);
 }
