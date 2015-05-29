@@ -18,14 +18,16 @@ public:
   sparseAlpha(matd m);
   void insert(size_t row,size_t col, double val);
   void insert(size_t col, const vec &v); // if col(i) == 0 remove this cell.
-
   void remove(size_t row,size_t col);
+  void remove(size_t row,map<size_t,double>::iterator col);
+  void set(sparseAlpha & other);
   // preform res(k) = scalar * alpha(k,p) * vec(p)
   size_t vecMul(vec & res, double scalar,Kernel * ker, size_t col,
                 vector<map<size_t,double>::iterator> & indx);
   size_t vecMul(vec & res, double scalar,Kernel * ker, size_t col,
                 vector<map<size_t,double>::iterator> & indx,bool includeSelf);
   size_t vecMul(vec & res, double scalar,Kernel * ker, vec & v);
+  void updateAcc(double beta,sparseAlpha &pr,sparseAlpha & nA);
   void setK(size_t k);
   void setP(size_t p);
   bool isIn(size_t row, size_t col);
