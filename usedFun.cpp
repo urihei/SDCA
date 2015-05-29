@@ -4,7 +4,6 @@ boost::mt19937 gen(999);
 void initRand(){
   gen.seed(time(NULL));//999);//
 }
-  
 //numbers in [0,d] includ both numbers
 int roll(unsigned int d){
   boost::random::uniform_int_distribution<> dist(0, d);
@@ -166,4 +165,54 @@ double AddNormAsFeature(matd &data){
     data[i].push_back(calcNormFeature(norm[i],max_norm));
   }
   return max_norm;
+}
+
+double normalizeData(matd &data, vec &meanVec){
+  size_t n = data.size();
+  size_t p = data[0].size();
+  meanVec.resize(p);
+  std::fill(meanVec.begin(),meanVec.end(),0);
+  for(vector<vector<double>>::iterator it = data.begin(); it != data.end(); ++it){
+    for(size_t i=0; i<p; ++i){
+      meanVec[i] += (*it)[i];
+    }
+  }
+  for(size_t i = 0; i<p; ++i){
+    meanVec[i] /= (n+0.0);
+  }
+  for(vector<vector<double>>::iterator it = data.begin(); it != data.end(); ++it){
+    for(size_t i=0; i<p; ++i){
+      (*it)[i] -= meanVec[i];
+    }
+  }
+  double maxNorm  = 0;
+  for(vector<vector<double>>::iterator it = data.begin(); it != data.end(); ++it){
+    double norm = 0;
+    for(size_t i=0; i<p; ++i){
+      norm += (*it)[i]*(*it)[i];
+    }
+   if (maxNorm<norm){
+     maxNorm = norm;
+   }
+  }
+  maxNorm = sqrt(maxNorm);
+  for(vector<vector<double>>::iterator it = data.begin(); it != data.end(); ++it){
+    for(size_t i=0; i<p; ++i){
+      (*it)[i] /= maxNorm;
+    }
+  }
+  return maxNorm;
+}
+void normalizeData(matd &data, vec &meanVec, double maxNorm){
+  size_t p = data[0].size();
+  for(vector<vector<double>>::iterator it = data.begin(); it != data.end(); ++it){
+    for(size_t i=0; i<p; ++i){
+      (*it)[i] -= meanVec[i];
+    }
+  }
+  for(vector<vector<double>>::iterator it = data.begin(); it != data.end(); ++it){
+    for(size_t i=0; i<p; ++i){
+      (*it)[i] /= maxNorm;
+    }
+  }
 }

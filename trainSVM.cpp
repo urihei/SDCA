@@ -134,7 +134,7 @@ void printUsage(char* ex){
 
   cerr<<"\t"<<"-epsilon value[double]"<<"\t default [1e-3]"<<" The requested accuracy "<<endl;
   cerr<<"\t"<<"-validation  value[unsigned int]"<<"\t default [0]"<<"Cross validation value - the number fo parts to divide the train set. 0 mean do not run this"<<endl;
-
+  cerr<<"\t"<<"-normalize  [0|1]"<<"\t default [0]"<<"Center the data and divide by the max l2 norm"<<endl;
   cerr<<"\t Kernel Option:"<<endl;
   cerr<<"\t\t"<<"-preCalc [0|1]"<<"\t default 0"<<" 1 - For calculate the kernel before optimization, 0 - for on the fly calculation."<<endl;  
   cerr<<"\t\t"<<"-sigma value[double]"<<"\t default 1"<<" Sigam for the RBF kernel"<<endl;
@@ -169,6 +169,7 @@ int main(int argc,char ** argv){
   unsigned int checkGap = 5;
   unsigned int checkGapAcc = 5;
   unsigned int validate = 0;
+  bool normalize = false;
   double epsilon = 1e-3;
 
   bool preCalc = false;
@@ -239,6 +240,10 @@ int main(int argc,char ** argv){
       validate = atoi(argv[i+1]);;
       rec = true;
     }
+    if(strcmp("-normalize",argv[i])==0){
+      normalize = argv[i+1][0] == '1';
+      rec = true;
+    }
     if(strcmp("-sigma",argv[i])==0){
       sigma  = atof(argv[i+1]);
       rec = true;
@@ -291,6 +296,12 @@ int main(int argc,char ** argv){
   ReadTrainData(data_file,data_t,y_t,label_map);
   size_t k =  label_map.size(); // the number of classes
   cerr<<"Finish reading data"<<endl;
+  //normalize
+  vec meanVec;
+  double maxNorm=1;
+  if(normalize)
+    maxNorm = normalizeData(data_t,meanVec);
+  
   //creating the kernel.
   time_t start_time =time(NULL);
   size_t n = y_t.size();
@@ -463,6 +474,10 @@ int main(int argc,char ** argv){
     vector<int> test_label_map;
     ReadTrainData(test_file,testData,y_test,test_label_map);
     cerr<<"Finsh reading test data"<<endl;
+    
+    if(normalize)
+      normalizeData(testData,meanVec,maxNorm);
+    
     size_t test_size = y_test.size();
     ivec y_res(test_size);
     sv->classify(testData,y_res);

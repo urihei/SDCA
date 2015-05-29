@@ -20,4 +20,7 @@ double logMultinomial(vector <unsigned int> &v);
 void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_map);
 double AddNormAsFeature(matd &data);
 double calcNormFeature(double squeredNorm,double max_norm);
+double normalizeData(matd &data, vec &meanVec);
+void normalizeData(matd &data, vec &meanVec, double maxNorm);
+
 #endif
