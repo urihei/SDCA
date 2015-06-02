@@ -1,13 +1,8 @@
 #include "zeroOneRBiasKernel.hpp"
 #include "usedFun.hpp"
 
-zeroOneRBiasKernel::zeroOneRBiasKernel(matd &data, ivec & hidden,vec &bias):_l(hidden.size()){
-  
+zeroOneRBiasKernel::zeroOneRBiasKernel(double* &data, size_t n, size_t p,ivec & hidden,vec &bias):_l(hidden.size()),_data(data,p,n),_p(p),_n(n){  
   _hidden = hidden;
-  fillMatrix(data,_data);
-  _data.transposeInPlace();
-  _p = _data.rows();
-  _n = _data.cols();
   _dataNorm.resize(_n);
   for(size_t i=0; i<_n;++i){
     _dataNorm(i) = sqrt(_data.col(i).squaredNorm()+bias[0]*bias[0]);
@@ -140,7 +135,7 @@ void zeroOneRBiasKernel::calc(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res,
 }
 */
 void zeroOneRBiasKernel::dot(size_t i,Ref<VectorXd> res){
-  ArrayXd alpha = OneDpi* (((((_data.transpose()*_data.col(i)).array()+_bias[0])/
+  ArrayXd alpha = OneDpi* (((((_data.col(i).transpose() * _data).array()+_bias[0])/
                              (_dataNorm[i] * _dataNorm)).min(1)).max(-1)).acos();
   calc(alpha,res,_l-1);
 }

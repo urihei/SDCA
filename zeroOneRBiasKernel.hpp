@@ -6,7 +6,7 @@
 
 class zeroOneRBiasKernel : public Kernel{
 public:
-  zeroOneRBiasKernel(matd &data, ivec &hidden,vec &bias);
+  zeroOneRBiasKernel(double* &data, size_t n,size_t p, ivec &hidden,vec &bias);
   double calc(double alpha,unsigned int l);
   virtual double dot(size_t i, size_t j);
   virtual double dot(vec &v, size_t j);    
@@ -23,7 +23,7 @@ protected:
   size_t _p;
   size_t _n;
   size_t _l;
-  MatrixXd _data;
+  Map<Matrix<double,Dynamic,Dynamic,ColMajor>>_data;
   ArrayXd _dataNorm;
   ivec _hidden;
   vec _norm;

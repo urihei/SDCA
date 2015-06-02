@@ -82,7 +82,6 @@ double baseKernelSVM::learn_acc_SDCA(){
 
     
   for(unsigned int t =1;t<=_accIter;++t){
-
     epsilon_t = learn_SDCA(alpha,zALPHA,eta/OnePetaSquare * xi);
     zALPHA_t = zALPHA;
     zALPHA = (1+beta)*(zALPHA + alpha) - beta * _alpha;

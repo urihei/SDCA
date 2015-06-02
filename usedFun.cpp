@@ -61,9 +61,12 @@ void fillMatrix(matd &data1, mat &data2){
     
     data2.resize(n,p);
     for(size_t i=0;i<n;++i){
+      /* memory inefficient
         for(size_t j=0;j<p;++j){
             data2(i,j) = data1[i][j];
         }
+      */
+      data2.row(i) = VectorXd::Map(&data1[i][0],p);
     }
 }
 unsigned long int prod(unsigned int s, unsigned int e){
@@ -144,6 +147,73 @@ void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_m
     }
     myfile.close();
 }
+size_t ReadTrainData(string fileName,double* &data,size_t* & label_arr,int* & label_map,size_t &n,size_t &p){
+    string line;
+    ifstream myfile;
+    myfile.open(fileName.c_str(),ifstream::in);
+    double tmp;
+    map<int,size_t> lMap;
+    unsigned int countLabel = 0;
+    if (!myfile.is_open()){
+        cerr << "Unable to open file" << fileName<<endl; 
+        assert(false);
+    }
+    getline (myfile,line);
+    istringstream iss(line);
+    p = 0;
+    //counting columns
+    while(iss){
+      iss>>tmp;
+      if (iss)
+        p++;
+    }
+    //countnig rows
+    p--; // the last coulumn is a label.
+    n=1;
+    while ( getline (myfile,line) ){
+      n++;
+    }
+    //return the stream to the begining of the file.
+    myfile.clear();
+    myfile.seekg(0,myfile.beg);
+    data = new double[n*p];
+    vector<size_t> label;
+    size_t ind_n = 0;
+    
+    while ( getline (myfile,line) ){
+        istringstream iss(line);
+        for(size_t ind_p =0; ind_p < p; ++ind_p){
+            iss>>tmp;
+            if (iss){
+              data[ind_p+ind_n*p] = tmp;
+            }
+        }
+        int cl;
+        iss >> cl;
+
+        map<int,size_t>::iterator lb = lMap.lower_bound(cl);
+        if(lb != lMap.end() && !(lMap.key_comp()(cl, lb->first))){
+            label.push_back(lb->second);
+        }else{
+            label.push_back(countLabel);
+            lMap.insert(lb, map<int,size_t >::value_type(cl, countLabel));
+            countLabel++;
+        }
+        ind_n++;
+    }
+    label_arr = new size_t[n];
+
+    ind_n =0;
+    for(vector<size_t>::iterator it = label.begin(); it != label.end();++it)
+      label_arr[ind_n++] = *it;
+    
+    label_map = new int[countLabel];
+    for(map<int,size_t>::iterator it = lMap.begin(); it != lMap.end();++it){
+        label_map[it->second] = it->first;
+    }
+    myfile.close();
+    return countLabel;
+}
 double calcNormFeature(double squeredNorm,double max_norm){
   return 1 - squeredNorm/max_norm;
 }
@@ -214,5 +284,51 @@ void normalizeData(matd &data, vec &meanVec, double maxNorm){
     for(size_t i=0; i<p; ++i){
       (*it)[i] /= maxNorm;
     }
+  }
+}
+double normalizeData(double* data, double* meanVec, size_t n,size_t p){
+  std::fill(meanVec,meanVec+p,0);
+  
+  for(size_t i=0; i<n;++i){
+    for(size_t j=0; j<p; ++j){
+      meanVec[j] += data[i*p+j];
+    }
+  }
+  
+  for(size_t i = 0; i<p; ++i){
+    meanVec[i] /= (n+0.0);
+  }
+  
+  for(size_t i=0; i<n;++i){
+    for(size_t j=0; j<p; ++j){
+      data[i*p+j] -= meanVec[j];
+    }
+  }
+  
+  double maxNorm  = 0;
+  for(size_t i=0; i<n;++i){
+    double norm = 0;
+    for(size_t j=0; j<p; ++j){
+      norm += data[i*n+p]*data[i*n+p];
+    }
+    if (maxNorm<norm){
+      maxNorm = norm;
+    }
+  }
+  maxNorm = sqrt(maxNorm);
+  for(size_t i=0; i<n*p;++i){
+      data[i] /= maxNorm;
+  }
+  return maxNorm;
+}
+
+void normalizeData(double* data, double* meanVec, double maxNorm, size_t n,size_t p){
+  for(size_t i=0; i<n;++i){
+    for(size_t j=0; j<p; ++j){
+      data[i*p+j] -= meanVec[j];
+    }
+  }
+  for(size_t i=0; i<n*p;++i){
+      data[i] /= maxNorm;
   }
 }

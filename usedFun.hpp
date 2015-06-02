@@ -18,9 +18,11 @@ double sumLog(unsigned int s, unsigned int e);
 unsigned long long int multinomial(vector <unsigned int> &v);
 double logMultinomial(vector <unsigned int> &v);
 void ReadTrainData(string fileName,matd& data,ivec & label,vector<int> & label_map);
+size_t ReadTrainData(string fileName,double* &data,size_t* & label_arr,int* & label_map,size_t &n,size_t &p);
 double AddNormAsFeature(matd &data);
 double calcNormFeature(double squeredNorm,double max_norm);
 double normalizeData(matd &data, vec &meanVec);
 void normalizeData(matd &data, vec &meanVec, double maxNorm);
-
+double normalizeData(double* data, double* meanVec,size_t n,size_t p);
+void normalizeData(double* data, double* meanVec, double maxNorm,size_t n,size_t p);
 #endif

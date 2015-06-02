@@ -18,7 +18,8 @@ public:
 
   virtual double getGap()=0;
   
-  virtual void classify(matd &data,ivec &res)=0;
+  virtual void classify(matd &data,size_t* res)=0;
+  virtual void classify(double* data,size_t* res,size_t n_test,size_t p_test)=0;
   virtual void classify(ivec_iter &itb,ivec_iter &ite,ivec &res)=0; // classify part of train data.
     
   virtual void saveModel(FILE* pFile)=0;
@@ -75,7 +76,7 @@ protected:
 
   bool _verbose;
     
-  ivec _y;
+  size_t* _y;
   size_t _k;
   size_t _n;
 

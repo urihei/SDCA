@@ -19,12 +19,9 @@
 #include "zeroOneL1Kernel.hpp"
 #include "reluL1Kernel.hpp"
 #include "zeroOneL2Kernel.hpp"
-#include "zeroOneRKernel.hpp"
-#include "zeroOneRNormKernel.hpp"
 #include "zeroOneRBiasKernel.hpp"
 #include "saulZeroKernel.hpp"
 #include "saulOneKernel.hpp"
-#include "linearKernel.hpp"
 
 /**
  *
@@ -32,7 +29,7 @@
  **/
 double findLambda(svm* sv,unsigned int folds,
                   double ll,double lh, unsigned int lamLen,
-                  vector<int> &label_map,ivec & y,double* validation_err){
+                  int* label_map,size_t* y,double* validation_err){
 
   size_t n = sv->getN();
   double step = pow(10,(lh-ll)/(lamLen-1));
@@ -289,22 +286,22 @@ int main(int argc,char ** argv){
       printUsage(argv[0]);
     }
   }
-  matd data_t; //mtarix to hold the data.
-  ivec y_t; //vec  to hold the data labels mapped to 0-(k-1).
-  vector<int> label_map; // vec to hold the map between the labels and the mapped labels.
+  double* data_t; //matrix to hold the data.
+  size_t* y_t; //vec  to hold the data labels mapped to 0-(k-1).
+  int* label_map; // vec to hold the map between the labels and the mapped labels.
+  size_t n=-1;
+  size_t p =-1;
   //reading the data
-  ReadTrainData(data_file,data_t,y_t,label_map);
-  size_t k =  label_map.size(); // the number of classes
+  size_t k = ReadTrainData(data_file,data_t,y_t,label_map,n,p);// the number of classes
   cerr<<"Finish reading data"<<endl;
   //normalize
-  vec meanVec;
+  double meanVec[p];
   double maxNorm=1;
   if(normalize)
-    maxNorm = normalizeData(data_t,meanVec);
+    maxNorm = normalizeData(data_t,meanVec,n,p);
   
   //creating the kernel.
   time_t start_time =time(NULL);
-  size_t n = y_t.size();
   Kernel* ker= NULL;
   svm* sv;
   if(kernel_type == "Linear"){
@@ -313,7 +310,7 @@ int main(int argc,char ** argv){
     if( kernel_type == "preCalcKernel"){
       cerr<<"Create predefined kernel"<<endl;
       sv = new preKernelSVM(y_t,data_t,k,lambda,gamma,iter*n,acc_iter);
-    }else{
+    }/*else{
 
       if(kernel_type == "RBF"){
         ker = new rbfKernel(data_t,sigma);
@@ -358,7 +355,7 @@ int main(int argc,char ** argv){
         sv = new kernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
       }
     }
-  }
+    }*/
   time_t kernel_creation = time(NULL)-start_time;
   cerr<<"Kerenel creating time "<< kernel_creation<<endl;
   cerr<<"Lambda: "<<sv->getLambda()<<endl;
@@ -469,28 +466,37 @@ int main(int argc,char ** argv){
   }
     
   if(test_file != ""){
-    matd testData;
-    ivec y_test;
-    vector<int> test_label_map;
-    ReadTrainData(test_file,testData,y_test,test_label_map);
+    double* testData;
+    size_t* y_test;
+    int* test_label_map;
+    size_t n_test =-1;
+    size_t p_test = -1;
+    ReadTrainData(test_file,testData,y_test,test_label_map,n_test,p_test);
+    assert(p_test == p);
     cerr<<"Finsh reading test data"<<endl;
     
     if(normalize)
-      normalizeData(testData,meanVec,maxNorm);
+      normalizeData(testData,meanVec,maxNorm,n_test,p_test);
     
-    size_t test_size = y_test.size();
-    ivec y_res(test_size);
-    sv->classify(testData,y_res);
+    size_t y_res[n_test];
+    sv->classify(testData,y_res,n_test);
     unsigned int count = 0;
-    for(size_t i=0;i<test_size;++i){
+    for(size_t i=0;i<n_test;++i){
       if(label_map[y_res[i]] != test_label_map[y_test[i]])
         count++;
     }
-    cout <<count<<"/"<<test_size<<"\t"<<(count+0.0)/test_size<<endl;
+    cout <<count<<"/"<<n_test<<"\t"<<(count+0.0)/n_test<<endl;
+    delete testData;
+    delete y_test;
+    delete test_label_map;
   }
 
   if(ker != NULL)
     delete ker;
+
+  delete data_t;
+  delete y_t;
+  delete label_map;
 
   delete sv;
 }

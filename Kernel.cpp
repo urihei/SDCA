@@ -13,6 +13,11 @@ void Kernel::dot(vec &v,Ref<VectorXd> res){
     res[j] = dot(v,j);
   }
 }
+virtual void dot(double* v,Ref<VectorXd> res){
+ for(size_t j=0;j<_n;++j){
+    res[j] = dot(v,j);
+  }
+}
 void Kernel::dot(size_t i,map<size_t,double>::const_iterator it,
                  map<size_t,double>::const_iterator ie,vec &res){
   size_t ind =0;
