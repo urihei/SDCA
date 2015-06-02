@@ -1,7 +1,7 @@
 #include "kernelSVM.hpp"
 #include "usedFun.hpp"
 
-kernelSVM::kernelSVM(ivec &y,Kernel* ker, size_t k,
+kernelSVM::kernelSVM(size_t* y,Kernel* ker, size_t k,
 		     double lambda, double gamma,
 		     unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
     _y = y;//reassign;
@@ -74,8 +74,19 @@ double kernelSVM::learn_SDCA(Ref <MatrixXd> alpha, const Ref <const MatrixXd> &z
     return gap;
 }
 
-
-void kernelSVM::classify(matd &data, ivec &res){
+void kernelSVM::classify(double* data,size_t* res,size_t n_test,size_t p_test){
+  VectorXd ya(_k);
+  VectorXd kerCol(_n);
+  MatrixXf::Index index;
+  cerr<<"Start kernel classify"<<endl;
+  for(size_t i=0;i<n_test;++i){
+    _ker->dot(&(data[i*p_test]),kerCol);
+    ya = _alpha * kerCol;
+    ya.maxCoeff(&index);
+    res[i] = (size_t) index;
+  }
+}
+void kernelSVM::classify(matd &data, size_t* res){
     size_t n = data.size();
     VectorXd ya(_k);
     VectorXd kerCol(_n);

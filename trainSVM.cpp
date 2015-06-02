@@ -171,10 +171,10 @@ int main(int argc,char ** argv){
 
   bool preCalc = false;
   double sigma = 1; //RBF
-  double degree = 2;//Poly
-  double c = 1; //Poly
-  unsigned int l = 0;
-  unsigned int hidden = 5;
+  //  double degree = 2;//Poly
+  // double c = 1; //Poly
+  //unsigned int l = 0;
+  // unsigned int hidden = 5;
   ivec hidden_layer {1,20,10};
   vec bias {1.0,1.0,1.0};
     
@@ -245,7 +245,7 @@ int main(int argc,char ** argv){
       sigma  = atof(argv[i+1]);
       rec = true;
     }
-    if(strcmp("-degree",argv[i])==0){
+    /*if(strcmp("-degree",argv[i])==0){
       degree  = atof(argv[i+1]);
       rec = true;
     }
@@ -256,7 +256,11 @@ int main(int argc,char ** argv){
     if(strcmp("-hidden",argv[i])==0){
       hidden  = atoi(argv[i+1]);
       rec = true;
-    }
+      }
+      if(strcmp("-l",argv[i])==0){
+      l  = atoi(argv[i+1]);
+      rec = true;
+    }*/
     if(strcmp("-hidden_layer",argv[i])==0){
       stringstream ss(argv[i+1]);
       string item;
@@ -277,10 +281,7 @@ int main(int argc,char ** argv){
       }
       rec = true;
     }   
-    if(strcmp("-l",argv[i])==0){
-      l  = atoi(argv[i+1]);
-      rec = true;
-    }
+    
     if(! rec){
       cerr<<"option "<<argv[i]<<" is not recognized"<<endl;
       printUsage(argv[0]);
@@ -310,11 +311,14 @@ int main(int argc,char ** argv){
     if( kernel_type == "preCalcKernel"){
       cerr<<"Create predefined kernel"<<endl;
       sv = new preKernelSVM(y_t,data_t,k,lambda,gamma,iter*n,acc_iter);
-    }/*else{
-
-      if(kernel_type == "RBF"){
-        ker = new rbfKernel(data_t,sigma);
+    }else{
+      if(kernel_type == "ZeroOneRBias"){
+        ker = new zeroOneRBiasKernel(data_t,n,p,hidden_layer,bias);
       }
+      if(kernel_type == "RBF"){
+        ker = new rbfKernel(data_t,n,p,sigma);
+      }
+      /*
       if(kernel_type == "Poly"){
         ker = new polyKernel(data_t,degree,c);
       }
@@ -336,15 +340,13 @@ int main(int argc,char ** argv){
       if(kernel_type == "ZeroOneRNorm"){
         ker = new zeroOneRNormKernel(data_t,hidden_layer);
       }
-      if(kernel_type == "ZeroOneRBias"){
-        ker = new zeroOneRBiasKernel(data_t,hidden_layer,bias);
-      }
+      
       if(kernel_type == "saulZero"){
         ker = new saulZeroKernel(data_t,l);
       }
       if(kernel_type == "saulOne"){
         ker = new saulOneKernel(data_t,l);
-      }
+	}*/
       if(ker==NULL){
         cerr<<"Unknown kernel: "<<kernel_type<<endl;
         printUsage(argv[0]);
@@ -355,7 +357,7 @@ int main(int argc,char ** argv){
         sv = new kernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
       }
     }
-    }*/
+    }
   time_t kernel_creation = time(NULL)-start_time;
   cerr<<"Kerenel creating time "<< kernel_creation<<endl;
   cerr<<"Lambda: "<<sv->getLambda()<<endl;
@@ -479,7 +481,7 @@ int main(int argc,char ** argv){
       normalizeData(testData,meanVec,maxNorm,n_test,p_test);
     
     size_t y_res[n_test];
-    sv->classify(testData,y_res,n_test);
+    sv->classify(testData,y_res,n_test,p_test);
     unsigned int count = 0;
     for(size_t i=0;i<n_test;++i){
       if(label_map[y_res[i]] != test_label_map[y_test[i]])

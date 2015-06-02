@@ -1,7 +1,8 @@
 #include "zeroOneRBiasKernel.hpp"
 #include "usedFun.hpp"
 
-zeroOneRBiasKernel::zeroOneRBiasKernel(double* &data, size_t n, size_t p,ivec & hidden,vec &bias):_l(hidden.size()),_data(data,p,n),_p(p),_n(n){  
+zeroOneRBiasKernel::zeroOneRBiasKernel(double* data, size_t n, size_t p,ivec & hidden,vec &bias):_p(p),_l(hidden.size()),_data(data,p,n){  
+  _n = n;
   _hidden = hidden;
   _dataNorm.resize(_n);
   for(size_t i=0; i<_n;++i){
@@ -85,26 +86,6 @@ double zeroOneRBiasKernel::calc(double alpha,unsigned int l){
   }
   return res /_norm[l];
 }
-double zeroOneRBiasKernel::dot(size_t i, size_t j){
-  double angle = (_data.col(j).dot(_data.col(i))+_bias[0])/(_dataNorm(i) * _dataNorm(j));
-  angle = (angle > 1)?  1:angle;
-  angle = (angle <-1)? -1:angle;
-  return calc(OneDpi*acos(angle),_l);
-}
-
-double zeroOneRBiasKernel::dot(vec & v, size_t j){
-  Map<VectorXd> vm(v.data(),_n,1);
-  double vmNorm = sqrt(vm.squaredNorm()+_bias[0]);
-  double angle = (vm.dot(_data.col(j))+_bias[0])/( vmNorm * _dataNorm(j));
-  angle = (angle > 1)?  1:angle;
-  angle = (angle <-1)? -1:angle;
-  return calc(OneDpi*acos(angle),2);
-}
-    
-double zeroOneRBiasKernel::squaredNorm(size_t i){
-  return 1;
-}
-
 void zeroOneRBiasKernel::calc(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res,unsigned int l){
   if(l==0){
     res = 1-alpha;
@@ -119,44 +100,50 @@ void zeroOneRBiasKernel::calc(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res,
   }
   res = res /_norm[l];
 }
-/*
-  void zeroOneRBiasKernel::calc2(const Ref<const ArrayXd> &alpha,Ref<VectorXd> res){
-  res.setZero();
-  for(size_t s1=1;s1<=_hidden;++s1){
-    for(size_t s2=1;s2<=_hidden;++s2){
-      size_t start = (s1+s2 >_hidden)? s1+s2-_hidden:0;
-      size_t end = (s1<s2)? s1:s2;
-      for(size_t i=start; i<=end;++i){
-        res = res.array() + _preCalc[s1-1][s2-1][i] * (1-alpha).pow(_hidden-s1-s2+2*i)*alpha.pow(s1+s2-2*i);
-      }
-    }
-  }
-  res = res /_norm;
+
+double zeroOneRBiasKernel::dot(size_t i, size_t j){
+  double angle = (_data.col(j).dot(_data.col(i))+_bias[0])/(_dataNorm(i) * _dataNorm(j));
+  angle = (angle > 1)?  1:angle;
+  angle = (angle <-1)? -1:angle;
+  return calc(OneDpi*acos(angle),_l);
 }
-*/
+double zeroOneRBiasKernel::dot(double* v,size_t j){
+  Map<VectorXd> vm(v,_p,1);
+  double vmNorm = sqrt(vm.squaredNorm()+_bias[0]);
+  double angle = (vm.dot(_data.col(j))+_bias[0])/( vmNorm * _dataNorm(j));
+  angle = (angle > 1)?  1:angle;
+  angle = (angle <-1)? -1:angle;
+  return calc(OneDpi*acos(angle),2);
+}
+double zeroOneRBiasKernel::dot(vec & v, size_t j){
+  return dot(v.data(),j);
+}
+
 void zeroOneRBiasKernel::dot(size_t i,Ref<VectorXd> res){
   ArrayXd alpha = OneDpi* (((((_data.col(i).transpose() * _data).array()+_bias[0])/
-                             (_dataNorm[i] * _dataNorm)).min(1)).max(-1)).acos();
+                             (_dataNorm[i] * _dataNorm.transpose())).min(1)).max(-1)).acos();
   calc(alpha,res,_l-1);
 }
-//here
-void zeroOneRBiasKernel::dot(vec &v,Ref<VectorXd> res){
-  VectorXd tmp(_p);
-  double normVec = 0.0;
-  for(size_t i=0; i<_p;++i){
-    tmp(i) = v[i];
-    normVec += v[i]*v[i];
-  }
-  normVec = sqrt(normVec + _bias[0]);
-  ArrayXd alpha = OneDpi*(((((_data.transpose()*tmp).array()+_bias[0])/
-                            (normVec * _dataNorm)).min(1)).max(-1)).acos();
+void zeroOneRBiasKernel::dot(double* v,Ref<VectorXd> res){
+  Map<VectorXd> vm(v,_p,1);
+  double vmNorm = sqrt(vm.squaredNorm() + _bias[0]);
+  ArrayXd alpha = OneDpi*(((((vm.transpose()* _data).array()+_bias[0])/
+                            (vmNorm * _dataNorm.transpose())).min(1)).max(-1)).acos();
   calc(alpha,res,_l-1);
+}
+void zeroOneRBiasKernel::dot(vec &v,Ref<VectorXd> res){
+  return dot(v.data(),res);
 }
 void zeroOneRBiasKernel::dot(const Ref<const  VectorXd> &v,Ref<VectorXd> res){
-  ArrayXd alpha = OneDpi*(((((_data.transpose()*v).array()+_bias[0])/
-                            (sqrt(v.squaredNorm()+_bias[0]) * _dataNorm)).min(1)).max(-1)).acos();
+  ArrayXd alpha = OneDpi*(((((v.transpose()*_data).array()+_bias[0])/
+                            (sqrt(v.squaredNorm()+_bias[0]) * _dataNorm.transpose())).min(1)).max(-1)).acos();
   calc(alpha,res,_l-1);
 }
+
+double zeroOneRBiasKernel::squaredNorm(size_t i){
+  return 1;
+}
+
 size_t zeroOneRBiasKernel::getN(){
   return _n;
 }

@@ -26,13 +26,14 @@ preKernelSVM::preKernelSVM(size_t* y,Kernel* kernel, size_t k,size_t n,
   _alpha.resize(_k,_n);
   _prmArray.resize(_n);
   cerr<<"Start create kernel"<<endl;
-    
-  _kernel.resize(_n,_n);
+  double*  pk = new double[n*n];
+  new (&_kernel) Map<MatrixXd>(pk,n,n);
+  cerr<<"Finish allocating kernel"<<endl;
   for(size_t i=0;i<_n;++i){
     kernel->dot(i,_kernel.col(i));
     _prmArray[i] = i;
   }
-  //    cout<<_kernel<<endl;
+  cerr<<_kernel<<endl;
   _squaredNormData = _kernel.diagonal();
   _kernel.diagonal().setZero();
   _kerFun = kernel;
@@ -74,11 +75,11 @@ double preKernelSVM::learn_SDCA(Ref<MatrixXd>alpha,  const Ref<const MatrixXd> &
       ind = 0;
     }
     size_t i = prm[ind];
-    //cerr<<i<<"@";
+    
     size_t curLabel = _y[i];
 
-
     p = lambdaN * (alpha * _kernel.col(i) + zALPHAtimeK.col(i));
+   
     p = p - p(curLabel) +1;
 
     p(curLabel) = 0;
