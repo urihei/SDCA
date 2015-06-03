@@ -28,12 +28,12 @@ preKernelSVM::preKernelSVM(size_t* y,Kernel* kernel, size_t k,size_t n,
   cerr<<"Start create kernel"<<endl;
   double*  pk = new double[n*n];
   new (&_kernel) Map<MatrixXd>(pk,n,n);
-  cerr<<"Finish allocating kernel"<<endl;
+  cerr<<"Finish allocating kernel of size"<<n<<"^2"<<endl;
   for(size_t i=0;i<_n;++i){
+    cerr<<i<<endl;
     kernel->dot(i,_kernel.col(i));
     _prmArray[i] = i;
   }
-  cerr<<_kernel<<endl;
   _squaredNormData = _kernel.diagonal();
   _kernel.diagonal().setZero();
   _kerFun = kernel;

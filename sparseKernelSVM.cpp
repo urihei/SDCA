@@ -1,12 +1,12 @@
 #include "sparseKernelSVM.hpp"
 #include "usedFun.hpp"
 
-sparseKernelSVM::sparseKernelSVM(ivec &y,Kernel* ker, size_t k,
+sparseKernelSVM::sparseKernelSVM(size_t *y,Kernel* ker, size_t k,size_t n,
                                  double lambda, double gamma,
-                                 unsigned int iter,unsigned int accIter):svm(k,lambda,gamma,iter,accIter),_alpha(sparseAlpha(k,y.size())){
+                                 unsigned int iter,unsigned int accIter):svm(k,lambda,gamma,iter,accIter),_alpha(sparseAlpha(k,n)){
+  _n = n;
   _y = y;//reassign;
   _ker = ker;
-  _n = _ker->getN();
   _usedN = _n;
   _alpha.setK(_k);
   _alpha.setP(_n);

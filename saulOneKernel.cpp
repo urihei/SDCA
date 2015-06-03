@@ -1,11 +1,8 @@
 #include "saulOneKernel.hpp"
 #include "usedFun.hpp"
 
-saulOneKernel::saulOneKernel(matd &data, unsigned int l):_l(l){
-  fillMatrix(data,_data);
-  _data.transposeInPlace();
-  _p = _data.rows();
-  _n = _data.cols();
+saulOneKernel::saulOneKernel(double* data,size_t n,size_t p, unsigned int l):_p(p),_l(l),_data(data,p,n){
+  _n = n;
   _dataNorm.resize(_n);
   for(size_t i=0; i<_n;++i){
     _dataNorm(i) = _data.col(i).stableNorm();
@@ -24,8 +21,12 @@ double saulOneKernel::dot(size_t i, size_t j){
   angle =  calcAngle(angle,_l);
   return OneDpi * _dataNorm(i)*_dataNorm(j) * ((M_PI-angle)*(cos(angle))+sin(angle));
 }
+
 double saulOneKernel::dot(vec &v, size_t j){
-  Map<VectorXd> vm(v.data(),_n,1);
+  return dot(v.data(),j);
+}
+double saulOneKernel::dot(double* v,size_t j){
+  Map<VectorXd> vm(v,_p,1);
   double vmNorm = vm.stableNorm();
   double angle = vm.dot(_data.col(j))/( vmNorm * _dataNorm(j));
   angle = (angle > 1)?  1:angle;
@@ -33,7 +34,7 @@ double saulOneKernel::dot(vec &v, size_t j){
   angle =  calcAngle(angle,_l);
   return OneDpi * vmNorm*_dataNorm(j) * ((M_PI-angle)*(cos(angle))+sin(angle));
 }
-  
+ 
 double saulOneKernel::squaredNorm(size_t i){
   return 1;
 }
@@ -45,28 +46,23 @@ void saulOneKernel::calcAngle(Ref<ArrayXd> alpha, unsigned int l){
   alpha = (OneDpi * (alpha.sin()+(M_PI - alpha)*(alpha.cos()))).acos();
 }
 void saulOneKernel::dot(size_t i,Ref<VectorXd> res){
-  ArrayXd preAn = ((((_data.transpose()*_data.col(i)).array()/
-                    (_dataNorm[i] * _dataNorm)).min(1)).max(-1)).acos();
+  ArrayXd preAn = ((((_data.col(i).transpose()*_data).array()/
+                     (_dataNorm[i] * _dataNorm.transpose())).min(1)).max(-1)).acos();
   calcAngle(preAn,_l);
   res =  OneDpi * _dataNorm(i)*_dataNorm * ((M_PI-preAn)*(preAn.cos())+preAn.sin());
 }
+
 void saulOneKernel::dot(vec &v,Ref<VectorXd>res){
-  VectorXd tmp(_p);
-  double normVec = 0.0;
-  for(size_t i=0; i<_p;++i){
-    tmp(i) = v[i];
-    normVec += v[i]*v[i];
-  }
-  normVec = sqrt(normVec);
-  ArrayXd preAn = ((((_data.transpose()*tmp).array()/
-                     (normVec * _dataNorm)).min(1)).max(-1)).acos();
-  calcAngle(preAn,_l);
-  res =  OneDpi * normVec*_dataNorm *((M_PI-preAn)*(preAn.cos())+preAn.sin());
+  dot(v.data(),res);
+}
+void saulOneKernel::dot(double* v,Ref<VectorXd> res){
+  Map<VectorXd> vm(v,_p,1);
+  dot(vm,res);
 }
 void saulOneKernel::dot(const Ref<const VectorXd> &v,Ref<VectorXd> res){
   double vNorm = v.stableNorm();
-  ArrayXd preAn = ((((_data.transpose()*v).array()/
-                     ( vNorm * _dataNorm)).min(1)).max(-1)).acos();
+  ArrayXd preAn = ((((v.transpose()*_data).array()/
+                     ( vNorm * _dataNorm.transpose())).min(1)).max(-1)).acos();
   calcAngle(preAn,_l);
   res =  OneDpi * vNorm * _dataNorm *((M_PI-preAn)*(preAn.cos())+preAn.sin());
 }

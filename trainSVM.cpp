@@ -173,7 +173,7 @@ int main(int argc,char ** argv){
   double sigma = 1; //RBF
   //  double degree = 2;//Poly
   // double c = 1; //Poly
-  //unsigned int l = 0;
+  unsigned int l = 0;
   // unsigned int hidden = 5;
   ivec hidden_layer {1,20,10};
   vec bias {1.0,1.0,1.0};
@@ -245,6 +245,10 @@ int main(int argc,char ** argv){
       sigma  = atof(argv[i+1]);
       rec = true;
     }
+    if(strcmp("-l",argv[i])==0){
+      l  = atoi(argv[i+1]);
+      rec = true;
+    }
     /*if(strcmp("-degree",argv[i])==0){
       degree  = atof(argv[i+1]);
       rec = true;
@@ -257,10 +261,7 @@ int main(int argc,char ** argv){
       hidden  = atoi(argv[i+1]);
       rec = true;
       }
-      if(strcmp("-l",argv[i])==0){
-      l  = atoi(argv[i+1]);
-      rec = true;
-    }*/
+      */
     if(strcmp("-hidden_layer",argv[i])==0){
       stringstream ss(argv[i+1]);
       string item;
@@ -294,7 +295,7 @@ int main(int argc,char ** argv){
   size_t p =-1;
   //reading the data
   size_t k = ReadTrainData(data_file,data_t,y_t,label_map,n,p);// the number of classes
-  cerr<<"Finish reading data"<<endl;
+  cerr<<"Finish reading data N:"<<n<<" P: "<<p<<endl;
   //normalize
   double meanVec[p];
   double maxNorm=1;
@@ -317,6 +318,12 @@ int main(int argc,char ** argv){
       }
       if(kernel_type == "RBF"){
         ker = new rbfKernel(data_t,n,p,sigma);
+      }
+      if(kernel_type == "saulZero"){
+        ker = new saulZeroKernel(data_t,n,p,l);
+      }
+      if(kernel_type == "saulOne"){
+        ker = new saulOneKernel(data_t,n,p,l);
       }
       /*
       if(kernel_type == "Poly"){
@@ -341,23 +348,19 @@ int main(int argc,char ** argv){
         ker = new zeroOneRNormKernel(data_t,hidden_layer);
       }
       
-      if(kernel_type == "saulZero"){
-        ker = new saulZeroKernel(data_t,l);
-      }
-      if(kernel_type == "saulOne"){
-        ker = new saulOneKernel(data_t,l);
-	}*/
+*/
       if(ker==NULL){
         cerr<<"Unknown kernel: "<<kernel_type<<endl;
         printUsage(argv[0]);
       }
       if(preCalc){
-        sv = new preKernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
+        sv = new preKernelSVM(y_t,ker,k,n,lambda,gamma,iter*n,acc_iter);
       }else{
         sv = new kernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
       }
     }
-    }
+  }
+  
   time_t kernel_creation = time(NULL)-start_time;
   cerr<<"Kerenel creating time "<< kernel_creation<<endl;
   cerr<<"Lambda: "<<sv->getLambda()<<endl;
@@ -371,9 +374,9 @@ int main(int argc,char ** argv){
   if(lambda_find){
     double val_err;
     double logLambda;
-    double le = -6;
-    double he = 2;
-    unsigned int div = 7;
+    double le = -8;
+    double he = 0;
+    unsigned int div = 4;
     double ed = 2.0;
     if(insertLambda){
       logLambda = log10(lambda);

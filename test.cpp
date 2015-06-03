@@ -24,7 +24,7 @@
 #include "saulZeroKernel.hpp"
 #include "saulOneKernel.hpp"
 
-
+/*
 int ReadData(string fileName,matd& data,ivec & label){
     string line;
     ifstream myfile;
@@ -177,7 +177,8 @@ ker2->calc(alpha*OneDpi,res2,2);
             count++;
     }
     cout<<"The Number of train error "<<count<<endl;
-    /*    kernelSVM svm(y_t,data_t,k,lambda,0.1,100*n,0);
+
+*//*kernelSVM svm(y_t,data_t,k,lambda,0.1,100*n,0);
 
           mat alpha1(k,n);
           alpha1.setZero();
@@ -278,6 +279,7 @@ ker2->calc(alpha*OneDpi,res2,2);
     // }
     
     //        delete ker;
-    return 0;
+    /*return 0;
 }
 
+*/

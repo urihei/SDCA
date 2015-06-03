@@ -8,7 +8,7 @@
 
 class sparseKernelSVM: public svm{
 public:
-  sparseKernelSVM(ivec &y,Kernel* ker,size_t k,
+  sparseKernelSVM(size_t *y,Kernel* ker,size_t k,size_t n,
                   double lambda=1, double gamma=1,
                   unsigned int iter=50,unsigned int accIter=0);
   virtual double learn_SDCA();

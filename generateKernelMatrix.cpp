@@ -41,10 +41,10 @@ int main(int argc,char ** argv){
   
   string kernel_type = "RBF";
   double sigma = 1; //RBF
-  double degree = 2;//Poly
+  /*  double degree = 2;//Poly
   double c = 1; //Poly
   unsigned int hidden = 5;
-  unsigned int l = 0;
+  unsigned int l = 0;*/
   ivec hidden_layer {1,20,10};
   vec bias {1.0,1.0,1.0};
   
@@ -56,18 +56,6 @@ int main(int argc,char ** argv){
     }
     if(strcmp("-sigma",argv[i])==0){
       sigma  = atof(argv[i+1]);
-      rec = true;
-    }
-    if(strcmp("-degree",argv[i])==0){
-      degree  = atof(argv[i+1]);
-      rec = true;
-    }
-    if(strcmp("-c",argv[i])==0){
-      c  = atof(argv[i+1]);
-      rec = true;
-    }
-    if(strcmp("-hidden",argv[i])==0){
-      hidden  = atoi(argv[i+1]);
       rec = true;
     }
     if(strcmp("-hidden_layer",argv[i])==0){
@@ -90,25 +78,43 @@ int main(int argc,char ** argv){
       }
       rec = true;
     }      
+    
+    /*   if(strcmp("-degree",argv[i])==0){
+      degree  = atof(argv[i+1]);
+      rec = true;
+    }
+    if(strcmp("-c",argv[i])==0){
+      c  = atof(argv[i+1]);
+      rec = true;
+    }
+    if(strcmp("-hidden",argv[i])==0){
+      hidden  = atoi(argv[i+1]);
+      rec = true;
+      }
     if(strcmp("-l",argv[i])==0){
       l  = atoi(argv[i+1]);
       rec = true;
-    }
+    }*/
     if(! rec){
       cerr<<"option "<<argv[i]<<" is not recognized"<<endl;
       printUsage(argv[0]);
     }
   }
   
-  matd data_t;
-  ivec y_t;
-  vector<int> label_map;
-  ReadTrainData(data_file,data_t,y_t,label_map);
-  size_t n = y_t.size();
+  double* data_t;
+  size_t* y_t;
+  int* label_map;
+  size_t n = -1;
+  size_t p = -1;
+  ReadTrainData(data_file,data_t,y_t,label_map,n,p);
   Kernel* ker= NULL;
   if(kernel_type == "RBF"){
-    ker = new rbfKernel(data_t,sigma);
+    ker = new rbfKernel(data_t,n,p,sigma);
   }
+  if(kernel_type == "ZeroOneRBias"){
+    ker = new zeroOneRBiasKernel(data_t,n,p,hidden_layer,bias);
+  }
+  /*
   if(kernel_type == "Poly"){
     ker = new polyKernel(data_t,degree,c);
             }
@@ -127,15 +133,12 @@ int main(int argc,char ** argv){
   if(kernel_type == "ZeroOneRNorm"){
     ker = new zeroOneRNormKernel(data_t,hidden_layer);
   }
-  if(kernel_type == "ZeroOneRBias"){
-    ker = new zeroOneRBiasKernel(data_t,hidden_layer,bias);
-  }
   if(kernel_type == "saulZero"){
         ker = new saulZeroKernel(data_t,l);
   }
   if(kernel_type == "saulOne"){
     ker = new saulOneKernel(data_t,l);
-  }
+    }*/
   if(ker==NULL){
     cerr<<"Unknown kernel: "<<kernel_type<<endl;
     printUsage(argv[0]);
