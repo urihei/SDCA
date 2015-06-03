@@ -14,6 +14,8 @@ public:
                    map<size_t,double>::const_iterator ie,vec &res);
   virtual void dot(vec &v,map<size_t,double>::const_iterator it,
                    map<size_t,double>::const_iterator ie,vec &res);
+  virtual void dot(double* v,map<size_t,double>::const_iterator it,
+                   map<size_t,double>::const_iterator ie,vec &res);
   virtual void dot(vec &v,Ref<VectorXd> res);
   virtual void dot(double* v,Ref<VectorXd> res);
   //virtual void dot(const Ref <const VectorXd> &v,Ref<VectorXd> res);

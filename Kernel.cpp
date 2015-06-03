@@ -34,6 +34,14 @@ void Kernel::dot(vec &v,map<size_t,double>::const_iterator it,
     ind++;
   }
 }
+void Kernel::dot(double* v,map<size_t,double>::const_iterator it,
+                 map<size_t,double>::const_iterator ie,vec &res){
+  size_t ind =0;
+  for(;it != ie; ++it){
+    res[ind] = dot(v,it->first);
+    ind++;
+  }
+}
 size_t Kernel::getN(){
   return _n;
 }

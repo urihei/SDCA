@@ -27,9 +27,10 @@ public:
   size_t vecMul(vec & res, double scalar,Kernel * ker, size_t col,
                 vector<map<size_t,double>::iterator> & indx,bool includeSelf);
   size_t vecMul(vec & res, double scalar,Kernel * ker, vec & v);
+  size_t vecMul(vec & res, double scalar,Kernel * ker, double* v);
   void updateAcc(double beta,sparseAlpha &pr,sparseAlpha & nA);
   void setK(size_t k);
-  void setP(size_t p);
+  void setN(size_t n);
   bool isIn(size_t row, size_t col);
   myMapD_iter getEnd(size_t k);
  
@@ -41,7 +42,7 @@ public:
   void clear();
 protected:
   size_t _k;
-  size_t _p;
+  size_t _n;
   vector<myMapD> _alpha;
   
   

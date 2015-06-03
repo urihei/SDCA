@@ -2,7 +2,7 @@
 #include "sparseAlpha.hpp"
 #include <limits>
 
-sparseAlpha::sparseAlpha(size_t k, size_t p):_k(k),_p(p){
+sparseAlpha::sparseAlpha(size_t k, size_t n):_k(k),_n(n){
   for(size_t i=0; i<_k; ++i){
     _alpha.push_back(myMapD());
   }  
@@ -13,7 +13,7 @@ sparseAlpha::sparseAlpha(matd m){
     cerr<<"The number of rows must be at least 1"<<endl;
     exit(0);
   }
-  _p= m[0].size();
+  _n= m[0].size();
   for(size_t i=0; i<_k; ++i){
     _alpha.push_back(myMapD());
   }
@@ -71,7 +71,7 @@ size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vec
 size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vector<map<size_t,double>::iterator> & indx,bool includeSelf){
   //assum v.size(0 == map.size();
   res.resize(_k);
-  vec vk(_p);
+  vec vk(_n);
   size_t big_index = _k+1;
   double val = std::numeric_limits<double>::lowest(); 
   for(size_t i=0;i<_k;++i){
@@ -104,10 +104,10 @@ size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, size_t col,vec
   }
   return big_index;
 }
-size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, vec & v){
+size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, double* v){
   //assum v.size(0 == map.size();
   res.resize(_k);
-  vec vk(_p);
+  vec vk(_n);
   size_t big_index = _k+1;
   double val = std::numeric_limits<double>::lowest(); 
   for(size_t i=0;i<_k;++i){
@@ -125,6 +125,10 @@ size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, vec & v){
     }
   }
   return big_index;
+
+}
+size_t sparseAlpha::vecMul(vec & res, double scalar,Kernel * ker, vec & v){
+  return vecMul(res,scalar,ker,v.data());
 }
 void sparseAlpha::set(sparseAlpha & other){
   for(size_t k=0; k<_k;++k){
@@ -135,8 +139,8 @@ void sparseAlpha::set(sparseAlpha & other){
 void sparseAlpha::setK(size_t k){
   _k = k;
 }
-void sparseAlpha::setP(size_t p){
-  _p = p;
+void sparseAlpha::setN(size_t n){
+  _n = n;
 }
 string sparseAlpha::toString(){
   string str;

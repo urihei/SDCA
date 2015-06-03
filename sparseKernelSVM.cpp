@@ -9,7 +9,7 @@ sparseKernelSVM::sparseKernelSVM(size_t *y,Kernel* ker, size_t k,size_t n,
   _ker = ker;
   _usedN = _n;
   _alpha.setK(_k);
-  _alpha.setP(_n);
+  _alpha.setN(_n);
   _squaredNormData.resize(_n);
   _prmArray.resize(_n);
   for(size_t i = 0;i<_n;++i){
@@ -49,7 +49,7 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps,matd
   double gap = eps + 1;
   unsigned int t=1;
   for(;t <= _iter;++t){
-    //    cerr<<alpha.toString()<<endl<<"@@@@@@@@@@@@@@@"<<endl;
+    //cerr<<alpha.toString()<<endl<<"@@@@@@@@@@@@@@@"<<endl;
     if((ind % _usedN) == 0){
       randperm(_usedN,prm,_prmArray);
       // //toRemove
@@ -61,7 +61,7 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps,matd
     size_t i = prm[ind];
     size_t curLabel = _y[i];
     
-    // cerr<<"iter: "<<i<<endl;
+    //    cerr<<"iter: "<<i<<endl;
 
     //        _ker->dot(i,kerCol);
     //        alpha.col(i).setZero();
@@ -69,7 +69,7 @@ double sparseKernelSVM::learn_SDCA(sparseAlpha &alpha,matd &pOld,double eps,matd
 
     alpha.vecMul(p,lambdaN,_ker,i,indx);
     //p += pOld(:,i)
-    // cerr<<"p:\t";
+    //cerr<<"p:\t";
     // for(size_t ii=0; ii<_k;++ii)
     //   cerr<< p[ii]<<" ";
     // cerr<<endl;
@@ -163,7 +163,7 @@ double sparseKernelSVM::learn_acc_SDCA(){
   vec resSample(_k);
 
   for(unsigned int t =1;t<=_accIter;++t){
-    // cerr<<"iter "<<t<<":\t"<<endl;
+    //cerr<<"iter "<<t<<":\t"<<endl;
     epsilon_t = learn_SDCA(alpha,zO,eta/OnePetaSquare * xi,pOld1);
 
     pA2->updateAcc(beta,(*pA1),alpha);
@@ -206,7 +206,7 @@ double sparseKernelSVM::learn_acc_SDCA(){
       // }
       //      cerr<<"Before norm"<<endl;
       double diff = alpha.norm(_ker);
-      //      cerr<<endl<<alpha.toString();
+      cerr<<endl<<alpha.toString();
       gap = (1+rho/mu)*epsilon_t + (rho*kappa)/(2*mu)*diff;
       if(_verbose)
 	cerr<<gap<<endl;
@@ -300,11 +300,8 @@ double sparseKernelSVM::getGap(sparseAlpha &alpha,matd &pOld,matd &res){
 }
 
 
-void sparseKernelSVM::classify(matd &data, ivec &res){
+void sparseKernelSVM::classify(matd &data, size_t* res){
   size_t n = data.size();
-  if(res.size() != n){
-    res.resize(n);
-  }
   vec ya(_k);
   //  vec kerCol(_n);
   cerr<<"Start kernel classify"<<endl;
@@ -317,13 +314,25 @@ void sparseKernelSVM::classify(matd &data, ivec &res){
   }
     
 }
+void sparseKernelSVM::classify(double* data,size_t* res,size_t n_test,size_t p_test){
+  vec ya(_k);
+  //  vec kerCol(_n);
+  cerr<<"Start kernel classify"<<endl;
+  for(size_t i=0;i<n_test;++i){
+    //_ker->dot(data[i],kerCol);
+    // ya = _alpha * kerCol;
+    // ya.maxCoeff(&index);
+    //  res[i] = (size_t) index;
+    res[i] = _alpha.vecMul(ya,1/_lambda,_ker,&(data[i*p_test])); //build a new function that recive vector and not column.
+  }
+}
 void sparseKernelSVM::classify(ivec_iter &itb,ivec_iter &ite,ivec &res){
   size_t n = std::distance(itb,ite);
   if(res.size() != n){
     res.resize(n);
   }
   //  vec kerCol(_n);
-  vector<map<size_t,double>::iterator> empty;
+  vector<map<size_t,double>::iterator> empty(_k);
   vec ya(_k);
   size_t i =0;
   for(ivec_iter it =itb; it<ite;++it){

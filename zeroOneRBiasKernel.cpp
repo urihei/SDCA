@@ -105,7 +105,7 @@ double zeroOneRBiasKernel::dot(size_t i, size_t j){
   double angle = (_data.col(j).dot(_data.col(i))+_bias[0])/(_dataNorm(i) * _dataNorm(j));
   angle = (angle > 1)?  1:angle;
   angle = (angle <-1)? -1:angle;
-  return calc(OneDpi*acos(angle),_l);
+  return calc(OneDpi*acos(angle),_l-1);
 }
 double zeroOneRBiasKernel::dot(double* v,size_t j){
   Map<VectorXd> vm(v,_p,1);
@@ -113,7 +113,7 @@ double zeroOneRBiasKernel::dot(double* v,size_t j){
   double angle = (vm.dot(_data.col(j))+_bias[0])/( vmNorm * _dataNorm(j));
   angle = (angle > 1)?  1:angle;
   angle = (angle <-1)? -1:angle;
-  return calc(OneDpi*acos(angle),2);
+  return calc(OneDpi*acos(angle),_l-1);
 }
 double zeroOneRBiasKernel::dot(vec & v, size_t j){
   return dot(v.data(),j);

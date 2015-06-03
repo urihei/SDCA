@@ -309,7 +309,7 @@ double normalizeData(double* data, double* meanVec, size_t n,size_t p){
   for(size_t i=0; i<n;++i){
     double norm = 0;
     for(size_t j=0; j<p; ++j){
-      norm += data[i*n+p]*data[i*n+p];
+      norm += data[i*p+j]*data[i*p+j];
     }
     if (maxNorm<norm){
       maxNorm = norm;

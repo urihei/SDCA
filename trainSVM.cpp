@@ -22,7 +22,7 @@
 #include "zeroOneRBiasKernel.hpp"
 #include "saulZeroKernel.hpp"
 #include "saulOneKernel.hpp"
-
+#include "sparseKernelSVM.hpp"
 /**
  *
  *
@@ -64,9 +64,7 @@ double findLambda(svm* sv,unsigned int folds,
       if(sv->getAccIter() >0){
         gap = sv->learn_acc_SDCA();
       }else{
-        cerr<<"not acc ";
         gap = sv->learn_SDCA();
-        exit(0);
       }
       cerr<<i<<": "<<gap<<"\t";
 
@@ -313,6 +311,7 @@ int main(int argc,char ** argv){
       cerr<<"Create predefined kernel"<<endl;
       sv = new preKernelSVM(y_t,data_t,k,lambda,gamma,iter*n,acc_iter);
     }else{
+      cerr<<"Create zeroOneRBias kernel"<<endl;
       if(kernel_type == "ZeroOneRBias"){
         ker = new zeroOneRBiasKernel(data_t,n,p,hidden_layer,bias);
       }
@@ -357,6 +356,7 @@ int main(int argc,char ** argv){
         sv = new preKernelSVM(y_t,ker,k,n,lambda,gamma,iter*n,acc_iter);
       }else{
         sv = new kernelSVM(y_t,ker,k,lambda,gamma,iter*n,acc_iter);
+        //        sv = new sparseKernelSVM(y_t,ker,k,n,lambda, gamma,iter*n,acc_iter);
       }
     }
   }
@@ -454,6 +454,7 @@ int main(int argc,char ** argv){
   size_t j =0;
   unsigned int err = 0;
   for(ivec_iter it =itb; it<ite;++it){
+    cerr<<trErr[j]<<"<->"<<y_t[*it]<<endl;
     if(trErr[j++] != y_t[*it]){
       err++;
     }
