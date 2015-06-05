@@ -26,7 +26,8 @@ public:
     
 protected:
 
-  Map<Matrix<double,Dynamic,Dynamic,ColMajor>> _kernel;
+  //  Map<Matrix<double,Dynamic,Dynamic,ColMajor>> _kernel;
+  MatrixXd _kernel;
   Kernel* _kerFun;
   VectorXd _squaredNormData;//need to fix
     

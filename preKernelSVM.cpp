@@ -3,8 +3,8 @@
 
 preKernelSVM::preKernelSVM(size_t* y,double* kernel, size_t k,size_t n,
                            double lambda, double gamma,
-                           unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter),_kernel(kernel,n,n){
-  cerr<<_kernel<<endl;
+                           unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
+  fillMatrix(kernel,_kernel,n,n);
   _n = n;
   _usedN = _n;
   _y = y;
@@ -19,18 +19,18 @@ preKernelSVM::preKernelSVM(size_t* y,double* kernel, size_t k,size_t n,
 }
 preKernelSVM::preKernelSVM(size_t* y,Kernel* kernel, size_t k,size_t n,
                            double lambda, double gamma,
-                           unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter),_kernel(NULL,1,1){
+                           unsigned int iter,unsigned int accIter):baseKernelSVM(k,lambda,gamma,iter,accIter){
   _n = n;
   _usedN = _n;
   _y = y;
   _alpha.resize(_k,_n);
   _prmArray.resize(_n);
   cerr<<"Start create kernel"<<endl;
-  double*  pk = new double[n*n];
-  new (&_kernel) Map<MatrixXd>(pk,n,n);
+  //double*  pk = new double[n*n];
+  //new (&_kernel) Map<MatrixXd>(pk,n,n);
+  _kernel.resize(n,n);
   cerr<<"Finish allocating kernel of size"<<n<<"^2"<<endl;
   for(size_t i=0;i<_n;++i){
-    cerr<<i<<endl;
     kernel->dot(i,_kernel.col(i));
     _prmArray[i] = i;
   }

@@ -69,6 +69,14 @@ void fillMatrix(matd &data1, mat &data2){
       data2.row(i) = VectorXd::Map(&data1[i][0],p);
     }
 }
+void fillMatrix(double *data1, mat &data2,size_t n,size_t p){
+    if(n == 0)
+        return;
+    data2.resize(n,p);
+    for(size_t i=0;i<n;++i){
+      data2.col(i) = VectorXd::Map(&data1[i*p],p);
+    }
+}
 unsigned long int prod(unsigned int s, unsigned int e){
     unsigned int ret = 1;
     while(s<=e){

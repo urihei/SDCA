@@ -23,6 +23,7 @@ typedef map<size_t,unsigned int>::iterator myMapUI_iter;
 
 
 const double OneDpi = 0.318309886183790691216444201928;
+const double OneD2pi= 0.159154943091895345608222100964;
 const double eps = 1e-16;
 #endif
 

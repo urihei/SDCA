@@ -454,7 +454,6 @@ int main(int argc,char ** argv){
   size_t j =0;
   unsigned int err = 0;
   for(ivec_iter it =itb; it<ite;++it){
-    cerr<<trErr[j]<<"<->"<<y_t[*it]<<endl;
     if(trErr[j++] != y_t[*it]){
       err++;
     }
@@ -470,7 +469,7 @@ int main(int argc,char ** argv){
     sv->saveModel(pFile);
     fclose(pFile);
   }
-    
+  
   if(test_file != ""){
     double* testData;
     size_t* y_test;
